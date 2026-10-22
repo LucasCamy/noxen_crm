@@ -144,3 +144,119 @@ export interface PortfolioSummary {
   followUpsDue: number
   generatedAt: string
 }
+
+// ---------------------------------------------------------------- fase 2: financeiro e atividades
+
+export type PaymentKind = 'Mensalidade' | 'Implementacao' | 'Avulso'
+export type PaymentStatus = 'Pendente' | 'Pago' | 'Cancelado'
+
+export interface Payment {
+  id: string
+  clientId: string
+  clientName: string
+  kind: PaymentKind
+  referenceMonth: string
+  description: string | null
+  amount: number
+  dueDate: string
+  paidOn: string | null
+  status: PaymentStatus
+  overdue: boolean
+  version: number
+}
+
+export interface PaymentInput {
+  kind: PaymentKind
+  referenceMonth: string
+  amount: number
+  dueDate: string
+  description: string | null
+}
+
+export type LedgerKind = 'Receita' | 'Despesa'
+export type LedgerStatus = 'Previsto' | 'Realizado' | 'Cancelado'
+
+export interface LedgerEntry {
+  id: string
+  kind: LedgerKind
+  date: string
+  description: string
+  category: string | null
+  amount: number
+  clientId: string | null
+  clientName: string | null
+  status: LedgerStatus
+  settledOn: string | null
+  overdue: boolean
+  version: number
+}
+
+export interface LedgerInput {
+  kind: LedgerKind
+  date: string
+  description: string
+  category: string | null
+  amount: number
+  clientId: string | null
+}
+
+export interface FinanceSummary {
+  month: string
+  received: number
+  expected: number
+  overdue: number
+  overdueCount: number
+  expenses: number
+  expensesPlanned: number
+  result: number
+}
+
+export interface Meeting {
+  id: string
+  clientId: string
+  heldAt: string
+  subject: string
+  notes: string | null
+  nextSteps: string | null
+  createdById: string | null
+  version: number
+}
+
+export type CampaignStatus = 'Planejada' | 'Ativa' | 'Pausada' | 'Encerrada'
+
+export interface Campaign {
+  id: string
+  clientId: string
+  name: string
+  objective: string | null
+  audience: string | null
+  creatives: string | null
+  startDate: string
+  endDate: string | null
+  budget: number
+  status: CampaignStatus
+  version: number
+}
+
+export interface MonthlyResult {
+  id: string
+  clientId: string
+  month: string
+  adSpend: number
+  leads: number
+  sales: number
+  revenue: number
+  costPerLead: number | null
+  costPerSale: number | null
+  roas: number | null
+  notes: string | null
+  version: number
+}
+
+export interface UserSummary {
+  id: string
+  email: string
+  fullName: string
+  isActive: boolean
+  roles: string[]
+}

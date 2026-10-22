@@ -10,11 +10,12 @@ import { useClient, useUsers } from '../lib/queries'
 import type { Client, ClientStatus } from '../lib/types'
 import { Badge, Dialog, ErrorNote, PageHeader } from '../components/ui'
 import { ClientForm } from '../components/ClientForm'
+import { ClientPanels } from '../components/ClientPanels'
 import { useToast } from '../components/Toast'
 
 export function ClientDetailPage() {
   const { id } = useParams()
-  const { user, canWrite } = useAuth()
+  const { user, canWrite, canFinance } = useAuth()
   const toast = useToast()
   const queryClient = useQueryClient()
   const users = useUsers().data ?? []
@@ -127,6 +128,8 @@ export function ClientDetailPage() {
           </section>
         </aside>
       </div>
+
+      <ClientPanels clientId={client.id} canFinance={canFinance} />
 
       <Dialog open={confirmClose} onClose={() => setConfirmClose(false)} title="Encerrar cliente?" description={`${client.name} deixa de contar no MRR e não poderá ser reativado.`}>
         <div className="dialog-form">

@@ -1,16 +1,18 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Building2, Filter, LayoutDashboard, LogOut } from 'lucide-react'
+import { Building2, Filter, LayoutDashboard, LogOut, Users, Wallet } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from './ui'
 
 const NAV = [
-  { to: '/', label: 'Painel', icon: LayoutDashboard, end: true },
-  { to: '/leads', label: 'Leads', icon: Filter, end: false },
-  { to: '/clients', label: 'Clientes', icon: Building2, end: false },
-]
+  { to: '/', label: 'Painel', icon: LayoutDashboard, end: true, need: null },
+  { to: '/leads', label: 'Leads', icon: Filter, end: false, need: null },
+  { to: '/clients', label: 'Clientes', icon: Building2, end: false, need: null },
+  { to: '/finance', label: 'Financeiro', icon: Wallet, end: false, need: 'finance' },
+  { to: '/users', label: 'Usuários', icon: Users, end: false, need: 'admin' },
+] as const
 
 export function Layout() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, canFinance, isAdmin } = useAuth()
   if (!user) return null
 
   return (
@@ -23,7 +25,7 @@ export function Layout() {
           <span className="brand-name">Noxen CRM</span>
         </div>
         <nav aria-label="Principal" className="nav">
-          {NAV.map(({ to, label, icon: Icon, end }) => (
+          {NAV.filter((n) => n.need === null || (n.need === 'finance' && canFinance) || (n.need === 'admin' && isAdmin)).map(({ to, label, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end} className="nav-item">
               <Icon size={20} aria-hidden />
               <span>{label}</span>

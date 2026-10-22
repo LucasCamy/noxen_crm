@@ -11,6 +11,8 @@ interface AuthValue {
   /** Admin e Comercial escrevem em leads e clientes; Marketing só lê. */
   canWrite: boolean
   isAdmin: boolean
+  /** Cobranças e lançamentos: Admin e Comercial (Marketing não vê o financeiro). */
+  canFinance: boolean
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
 }
@@ -60,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       canWrite: roles.includes('Admin') || roles.includes('Comercial'),
       isAdmin: roles.includes('Admin'),
+      canFinance: roles.includes('Admin') || roles.includes('Comercial'),
       signIn,
       signOut,
     }
