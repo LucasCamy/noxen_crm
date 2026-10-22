@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Noxen.Crm.Api.Auth;
 using Noxen.Crm.Api.Clients;
@@ -40,6 +41,16 @@ builder.Services.AddRateLimiter(o =>
         _ => new FixedWindowRateLimiterOptions { PermitLimit = authPerMinute, Window = TimeSpan.FromMinutes(1) }));
 });
 
+// Atrás de um proxy reverso (nginx do frontend) o IP real vem em X-Forwarded-For. Só habilite quando a API
+// NÃO estiver exposta diretamente: com isso o cabeçalho passa a ser confiável de qualquer origem.
+if (config.GetValue<bool>("ForwardedHeaders:Enabled"))
+    builder.Services.Configure<ForwardedHeadersOptions>(o =>
+    {
+        o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        o.KnownIPNetworks.Clear();
+        o.KnownProxies.Clear();
+    });
+
 var app = builder.Build();
 
 if (config.GetValue<bool>("Database:MigrateOnStartup"))
@@ -47,6 +58,7 @@ if (config.GetValue<bool>("Database:MigrateOnStartup"))
         await scope.ServiceProvider.GetRequiredService<CrmDbContext>().Database.MigrateAsync();
 await DatabaseSeeder.SeedAsync(app.Services);
 
+if (config.GetValue<bool>("ForwardedHeaders:Enabled")) app.UseForwardedHeaders();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseCors();

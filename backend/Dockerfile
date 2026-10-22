@@ -1,12 +1,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-COPY nuget.config Directory.Build.props Noxen.Crm.slnx ./
+COPY nuget.config Directory.Build.props Noxen.Crm.slnx dotnet-tools.json ./
 COPY src/Noxen.Crm.Domain/*.csproj src/Noxen.Crm.Domain/
 COPY src/Noxen.Crm.Infrastructure/*.csproj src/Noxen.Crm.Infrastructure/
 COPY src/Noxen.Crm.Api/*.csproj src/Noxen.Crm.Api/
 COPY src/Noxen.Crm.Worker/*.csproj src/Noxen.Crm.Worker/
 RUN dotnet restore src/Noxen.Crm.Api && dotnet restore src/Noxen.Crm.Worker
 COPY src/ src/
+# Bundle de migrations: executável único que aplica o schema de forma explícita (serviço `migrate`).
+RUN dotnet tool restore  && dotnet ef migrations bundle --project src/Noxen.Crm.Infrastructure --startup-project src/Noxen.Crm.Api     --self-contained -r linux-x64 --output /out/efbundle --force
 RUN dotnet publish src/Noxen.Crm.Api -c Release --no-restore -o /out/api \
  && dotnet publish src/Noxen.Crm.Worker -c Release --no-restore -o /out/worker
 
@@ -22,3 +24,9 @@ WORKDIR /app
 COPY --from=build /out/worker .
 USER $APP_UID
 ENTRYPOINT ["dotnet", "Noxen.Crm.Worker.dll"]
+
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0 AS migrate
+WORKDIR /app
+COPY --from=build /out/efbundle .
+USER $APP_UID
+ENTRYPOINT ["./efbundle"]

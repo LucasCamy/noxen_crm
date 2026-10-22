@@ -51,7 +51,7 @@ npm test                             # vitest: formatação e regras de funil
 npm run lint                         # oxlint (2 avisos de fast refresh conhecidos)
 ```
 
-`docker compose --profile app build` constrói as imagens da API e do Worker (conferir o resultado no relatório da tarefa que o executou); `docker compose --profile app up -d` sobe a aplicação completa.
+`docker compose --profile app up -d --build` sobe a aplicação completa (migrate, API, Worker e web em http://localhost:8090); executado e testado com login, escrita e evento da outbox pelo nginx.
 
 ## Convenções
 

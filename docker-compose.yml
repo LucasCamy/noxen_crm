@@ -2,7 +2,8 @@
 #
 #   cp .env.example .env                              # ajuste os valores
 #   docker compose up -d                              # só PostgreSQL, Redis e RabbitMQ (para `dotnet run` no host)
-#   docker compose --profile app up -d --build        # também sobe a API e o Worker em contêineres
+#   docker compose --profile app up -d --build        # aplicação completa: migrate, API, Worker e web
+#                                                     # (web em http://localhost:8090, API em http://localhost:8081)
 #
 # Portas expostas apenas em 127.0.0.1. Os valores do .env.example servem somente para desenvolvimento local.
 
@@ -56,6 +57,19 @@ services:
       timeout: 5s
       retries: 10
 
+  # Aplica as migrations (bundle do EF Core) e termina. A API e o Worker só sobem depois dele.
+  migrate:
+    profiles: ["app"]
+    build:
+      context: ./backend
+      target: migrate
+    restart: "no"
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-noxen_crm};Username=${POSTGRES_USER:-noxen};Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__Redis: redis:6379
+
   api:
     profiles: ["app"]
     build:
@@ -63,7 +77,7 @@ services:
       target: api
     restart: unless-stopped
     depends_on:
-      postgres: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
     environment:
@@ -76,8 +90,10 @@ services:
       AdminSeed__Email: ${ADMIN_EMAIL:-}
       AdminSeed__Password: ${ADMIN_PASSWORD:-}
       Cors__Origins__0: ${CORS_ORIGIN:-http://localhost:5173}
+      # O nginx do serviço `web` é o proxy: confia no X-Forwarded-For para o limite de taxa por IP.
+      ForwardedHeaders__Enabled: "true"
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:${API_HOST_PORT:-8081}:8080"
 
   worker:
     profiles: ["app"]
@@ -86,7 +102,7 @@ services:
       target: worker
     restart: unless-stopped
     depends_on:
-      postgres: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
     environment:
@@ -96,6 +112,17 @@ services:
       RabbitMq__Host: rabbitmq
       RabbitMq__User: ${RABBITMQ_USER:-noxen}
       RabbitMq__Password: ${RABBITMQ_PASSWORD}
+
+  web:
+    profiles: ["app"]
+    build:
+      context: ./frontend
+      target: web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:8090:8080"
 
 volumes:
   postgres_data:

@@ -48,7 +48,19 @@ Em `Development` a API aplica as migrations ao subir e cria o usuário `admin@no
 | PostgreSQL | localhost:5432 |
 | Redis | localhost:6379 |
 
-Aplicação completa em contêineres: `docker compose --profile app up -d --build` (exige `JWT_KEY` no `.env`; veja [.env.example](.env.example)).
+Aplicação completa em contêineres (migrate → API e Worker → nginx com o frontend):
+
+```bash
+cp .env.example .env     # defina JWT_KEY (32+ caracteres) e, no primeiro uso, ADMIN_EMAIL e ADMIN_PASSWORD
+docker compose --profile app up -d --build
+```
+
+| Serviço | Endereço |
+|---|---|
+| Aplicação (nginx + SPA + proxy `/api`) | http://localhost:8090 |
+| API direta | http://localhost:8081 (`API_HOST_PORT` muda a porta; a 8080 costuma estar ocupada) |
+
+O serviço `migrate` aplica as migrations com um bundle do EF Core e termina; a API e o Worker só sobem depois dele. Em produção, rode o mesmo bundle de forma explícita e autorizada, nunca como efeito colateral de subir a aplicação.
 
 ## Testes
 
