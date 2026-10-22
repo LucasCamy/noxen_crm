@@ -107,7 +107,7 @@ public sealed record UpdateKnowledgeRequest : KnowledgeInput
 public sealed record KnowledgeResponse(Guid Id, string Title, string Body, string? Source, int SortOrder, uint Version);
 
 /// <summary>Item da agenda unificada: tarefas, follow-ups de leads, reuniões, vencimentos e publicações.</summary>
-public sealed record PlanningItem(DateOnly Date, string Kind, string Title, string? Subtitle, string Link, bool Overdue);
+public sealed record PlanningItem(DateOnly Date, string Kind, string Title, string? Subtitle, string Link, bool Overdue, decimal? Amount = null);
 
 public static class WorkspaceEndpoints
 {
@@ -155,6 +155,22 @@ public static class WorkspaceEndpoints
     }
 
     private static DateOnly Today(TimeProvider clock) => DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
+
+    private static string FormatLabel(ContentFormat f) => f switch
+    {
+        ContentFormat.Carrossel => "Carrossel",
+        ContentFormat.Reels => "Reels/TikTok",
+        ContentFormat.Anuncio => "Anúncio",
+        ContentFormat.Video => "Vídeo",
+        _ => f.ToString(),
+    };
+
+    private static string StatusLabel(ContentStatus s) => s switch
+    {
+        ContentStatus.Producao => "Produção",
+        ContentStatus.Aprovacao => "Aprovação",
+        _ => s.ToString(),
+    };
 
     private static async Task<IResult> Delete<T>(CrmDbContext db, DbSet<T> set, Guid id) where T : class
     {
@@ -382,13 +398,13 @@ public static class WorkspaceEndpoints
 
         var contents = await db.Contents.AsNoTracking()
             .Where(c => c.Status != ContentStatus.Publicado && c.PublishDate != null && c.PublishDate >= start && c.PublishDate <= end).Take(MaxList).ToListAsync();
-        items.AddRange(contents.Select(c => new PlanningItem(c.PublishDate!.Value, "Conteúdo", c.Title, $"{c.Format} · {c.Status}", "/contents", false)));
+        items.AddRange(contents.Select(c => new PlanningItem(c.PublishDate!.Value, "Conteúdo", c.Title, $"{FormatLabel(c.Format)} · {StatusLabel(c.Status)}", "/contents", false)));
 
         if (user.IsInRole(Roles.Admin) || user.IsInRole(Roles.Comercial))
         {
             var due = await db.Payments.AsNoTracking().Where(p => p.Status == PaymentStatus.Pendente && p.DueDate <= end)
-                .Join(db.Clients, p => p.ClientId, c => c.Id, (p, c) => new { p.DueDate, p.Amount, p.ClientId, c.Name }).Take(MaxList).ToListAsync();
-            items.AddRange(due.Select(p => new PlanningItem(p.DueDate, "Vencimento", p.Name, $"R$ {p.Amount:N2}", $"/clients/{p.ClientId}", p.DueDate < start)));
+                .Join(db.Clients, p => p.ClientId, c => c.Id, (p, c) => new { p.DueDate, p.Amount, p.Kind, p.ClientId, c.Name }).Take(MaxList).ToListAsync();
+            items.AddRange(due.Select(p => new PlanningItem(p.DueDate, "Vencimento", p.Name, p.Kind == PaymentKind.Mensalidade ? "Mensalidade" : p.Kind == PaymentKind.Implementacao ? "Implementação" : "Cobrança avulsa", $"/clients/{p.ClientId}", p.DueDate < start, p.Amount)));
         }
 
         return Results.Ok(items.OrderBy(i => i.Date).ThenBy(i => i.Kind).ThenBy(i => i.Title).ToList());

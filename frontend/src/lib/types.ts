@@ -260,3 +260,90 @@ export interface UserSummary {
   isActive: boolean
   roles: string[]
 }
+
+// ---------------------------------------------------------------- fase 3: planejamento e conteúdo
+
+export type Priority = 'Alta' | 'Media' | 'Baixa'
+export type TodoStatus = 'Aberta' | 'EmAndamento' | 'Concluida' | 'Cancelada'
+
+export interface Task {
+  id: string
+  title: string
+  notes: string | null
+  type: string | null
+  dueDate: string | null
+  priority: Priority
+  status: TodoStatus
+  clientId: string | null
+  clientName: string | null
+  leadId: string | null
+  assigneeId: string | null
+  completedAt: string | null
+  overdue: boolean
+  version: number
+}
+
+export type IdeaStatus = 'Nova' | 'EmAnalise' | 'Aprovada' | 'EmExecucao' | 'Descartada'
+
+export interface Idea {
+  id: string
+  title: string
+  category: string | null
+  priority: Priority
+  status: IdeaStatus
+  notes: string | null
+  nextStep: string | null
+  date: string | null
+  clientId: string | null
+  clientName: string | null
+  version: number
+}
+
+export type ScriptStage = 'AbordagemInicial' | 'Qualificacao' | 'FollowUp' | 'RespostaDoLead' | 'Objecoes' | 'Fechamento' | 'Parceria'
+
+export interface ScriptTemplate {
+  id: string
+  title: string
+  stage: ScriptStage
+  channel: string | null
+  niche: string | null
+  usage: string | null
+  body: string
+  version: number
+}
+
+export type ContentFormat = 'Post' | 'Carrossel' | 'Reels' | 'Story' | 'Anuncio' | 'Video' | 'Outro'
+export type ContentStatus = 'Ideia' | 'Roteiro' | 'Producao' | 'Aprovacao' | 'Agendado' | 'Publicado'
+
+export interface ContentItem {
+  id: string
+  title: string
+  format: ContentFormat
+  status: ContentStatus
+  channel: string | null
+  objective: string | null
+  publishDate: string | null
+  clientId: string | null
+  clientName: string | null
+  body: string | null
+  version: number
+}
+
+export interface KnowledgeDoc {
+  id: string
+  title: string
+  body: string
+  source: string | null
+  sortOrder: number
+  version: number
+}
+
+export interface PlanningItem {
+  date: string
+  kind: string
+  title: string
+  subtitle: string | null
+  link: string
+  overdue: boolean
+  amount: number | null
+}

@@ -87,6 +87,12 @@ Todas as rotas exigem token `Bearer`, exceto login, refresh, logout e `/health/*
 | `GET /api/clients` · `GET /api/clients/{id}` | autenticado | carteira |
 | `POST /api/clients` · `PUT /api/clients/{id}` · `POST /api/clients/{id}/status` | Admin, Comercial | cadastro e ciclo de vida do cliente |
 | `GET /api/dashboard/portfolio` | autenticado | clientes ativos vs meta, MRR, leads por etapa, follow-ups vencidos (cache no Redis) |
+| `GET /api/payments` · `POST /api/clients/{id}/payments` · `PUT /api/payments/{id}` · `POST /api/payments/{id}/pay` · `/cancel` | Admin, Comercial | cobranças dos clientes (atraso derivado; uma mensalidade ativa por cliente/mês) |
+| `GET/POST/PUT /api/ledger` · `POST /api/ledger/{id}/settle` · `/cancel` | Admin, Comercial | receitas avulsas e despesas da agência |
+| `GET /api/finance/summary?month=AAAA-MM` · `POST /api/finance/charges/generate` | Admin, Comercial · só Admin | caixa do mês; geração manual das mensalidades (o Worker também gera todo mês) |
+| `/api/clients/{id}/meetings` · `/campaigns` · `/results` (+ `PUT/DELETE` em `/api/meetings`, `/campaigns`, `/results`) | leitura: todos · escrita: todos os papéis | reuniões, campanhas e resultados mensais (CPL, custo por venda e ROAS) |
+| `/api/tasks` · `/api/ideas` · `/api/scripts` · `/api/contents` · `/api/knowledge` | leitura: todos · escrita: todos os papéis | tarefas, ideias, scripts comerciais, conteúdos e base estratégica |
+| `GET /api/planning?from&to` | autenticado | agenda unificada: tarefas, follow-ups, reuniões, vencimentos (só Admin/Comercial) e publicações, com atrasados |
 
 Etapas do lead: `AContatar → Contatado → Respondeu → ReuniaoMarcada → PropostaEnviada → Fechado | Perdido`. Perdido exige motivo; Fechado só pela conversão em cliente. Status do cliente: `Implementacao`, `Ativo`, `Pausado`, `Encerrado`. O MRR soma as mensalidades dos clientes `Ativo`. Meta e prazo vêm de `Portfolio:TargetClients` e `Portfolio:Deadline` (padrão: 10 clientes até 30/11/2026).
 

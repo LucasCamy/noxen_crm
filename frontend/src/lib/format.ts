@@ -71,3 +71,27 @@ export function toDateTimeLocal(iso: string | null | undefined): string {
 export function fromDateTimeLocal(value: string): string | null {
   return value ? new Date(value).toISOString() : null
 }
+
+/**
+ * Preenche os placeholders de um script comercial: {{empresa}}, {{contato}} e {{meu_nome}}.
+ * Sem valor, {{empresa}} vira "sua empresa" e os demais somem junto com o espaço que os antecede
+ * ("Oi {{contato}}, tudo bem?" vira "Oi, tudo bem?"), para o texto não ficar quebrado.
+ */
+export function renderScript(body: string, vars: { empresa?: string | null; contato?: string | null; meu_nome?: string | null }): string {
+  return body.replace(/(\s*)\{\{\s*(empresa|contato|meu_nome)\s*\}\}/gi, (_match, space: string, key: string) => {
+    const k = key.toLowerCase() as keyof typeof vars
+    const value = vars[k]?.trim()
+    if (value) return space + value
+    return k === 'empresa' ? `${space}sua empresa` : ''
+  })
+}
+
+/** Link do WhatsApp com o texto já preenchido. */
+export function whatsappUrlWithText(raw: string | null | undefined, text: string): string | null {
+  const base = whatsappUrl(raw)
+  return base ? `${base}?text=${encodeURIComponent(text)}` : null
+}
+
+export function firstName(fullName: string): string {
+  return fullName.trim().split(/\s+/)[0] ?? ''
+}

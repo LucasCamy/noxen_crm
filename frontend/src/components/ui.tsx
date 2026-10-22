@@ -112,12 +112,12 @@ export function SelectField({ label, error, children, ...select }: SelectFieldPr
   )
 }
 
-type TextAreaFieldProps = TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string }
+type TextAreaFieldProps = TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string; hint?: string }
 
-export function TextAreaField({ label, error, ...area }: TextAreaFieldProps) {
+export function TextAreaField({ label, error, hint, ...area }: TextAreaFieldProps) {
   const id = useId()
   return (
-    <FieldShell label={label} error={error} htmlFor={id}>
+    <FieldShell label={label} error={error} hint={hint} htmlFor={id}>
       <textarea id={id} aria-invalid={!!error} {...area} />
     </FieldShell>
   )

@@ -1,4 +1,14 @@
-import type { ClientStatus, LeadSource, LeadStage } from './types'
+import type {
+  ClientStatus,
+  ContentFormat,
+  ContentStatus,
+  IdeaStatus,
+  LeadSource,
+  LeadStage,
+  Priority,
+  ScriptStage,
+  TodoStatus,
+} from './types'
 
 export type Tone = 'neutral' | 'info' | 'teal' | 'warning' | 'brand' | 'success' | 'danger'
 
@@ -49,3 +59,62 @@ export function moveError(from: LeadStage, to: LeadStage): string | null {
   if (from === 'Perdido' && to !== 'AContatar') return 'Um lead perdido só pode ser reaberto como "A contatar".'
   return null
 }
+
+// ---------------------------------------------------------------- fase 3
+
+export const PRIORITIES: { key: Priority; label: string; tone: Tone }[] = [
+  { key: 'Alta', label: 'Alta', tone: 'danger' },
+  { key: 'Media', label: 'Média', tone: 'warning' },
+  { key: 'Baixa', label: 'Baixa', tone: 'neutral' },
+]
+export const priorityInfo = (k: Priority) => PRIORITIES.find((p) => p.key === k)!
+
+export const TODO_STATUSES: { key: TodoStatus; label: string }[] = [
+  { key: 'Aberta', label: 'Aberta' },
+  { key: 'EmAndamento', label: 'Em andamento' },
+  { key: 'Concluida', label: 'Concluída' },
+  { key: 'Cancelada', label: 'Cancelada' },
+]
+
+export const IDEA_STATUSES: { key: IdeaStatus; label: string; tone: Tone }[] = [
+  { key: 'Nova', label: 'Nova', tone: 'info' },
+  { key: 'EmAnalise', label: 'Em análise', tone: 'warning' },
+  { key: 'Aprovada', label: 'Aprovada', tone: 'brand' },
+  { key: 'EmExecucao', label: 'Em execução', tone: 'teal' },
+  { key: 'Descartada', label: 'Descartada', tone: 'neutral' },
+]
+export const ideaStatusInfo = (k: IdeaStatus) => IDEA_STATUSES.find((s) => s.key === k)!
+
+export const SCRIPT_STAGES: { key: ScriptStage; label: string }[] = [
+  { key: 'AbordagemInicial', label: 'Abordagem inicial' },
+  { key: 'Qualificacao', label: 'Qualificação' },
+  { key: 'FollowUp', label: 'Follow-up' },
+  { key: 'RespostaDoLead', label: 'Resposta do lead' },
+  { key: 'Objecoes', label: 'Objeções' },
+  { key: 'Fechamento', label: 'Fechamento' },
+  { key: 'Parceria', label: 'Parceria' },
+]
+export const scriptStageLabel = (k: ScriptStage) => SCRIPT_STAGES.find((s) => s.key === k)?.label ?? k
+
+export const CONTENT_FORMATS: { key: ContentFormat; label: string }[] = [
+  { key: 'Post', label: 'Post' },
+  { key: 'Carrossel', label: 'Carrossel' },
+  { key: 'Reels', label: 'Reels/TikTok' },
+  { key: 'Story', label: 'Story' },
+  { key: 'Anuncio', label: 'Anúncio' },
+  { key: 'Video', label: 'Vídeo' },
+  { key: 'Outro', label: 'Outro' },
+]
+export const contentFormatLabel = (k: ContentFormat) => CONTENT_FORMATS.find((f) => f.key === k)?.label ?? k
+
+export const CONTENT_STATUSES: { key: ContentStatus; label: string; tone: Tone }[] = [
+  { key: 'Ideia', label: 'Ideia', tone: 'neutral' },
+  { key: 'Roteiro', label: 'Roteiro', tone: 'info' },
+  { key: 'Producao', label: 'Produção', tone: 'warning' },
+  { key: 'Aprovacao', label: 'Aprovação', tone: 'brand' },
+  { key: 'Agendado', label: 'Agendado', tone: 'teal' },
+  { key: 'Publicado', label: 'Publicado', tone: 'success' },
+]
+export const contentStatusInfo = (k: ContentStatus) => CONTENT_STATUSES.find((s) => s.key === k)!
+
+export const CHANNELS = ['Instagram', 'Facebook', 'TikTok', 'WhatsApp', 'Meta Ads', 'Google', 'Site']

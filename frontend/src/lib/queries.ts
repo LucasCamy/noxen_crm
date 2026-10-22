@@ -4,7 +4,10 @@ import type {
   Campaign,
   Client,
   ClientStatus,
+  ContentItem,
   FinanceSummary,
+  Idea,
+  KnowledgeDoc,
   Lead,
   LeadStage,
   LeadStageChange,
@@ -13,7 +16,10 @@ import type {
   MonthlyResult,
   Paged,
   Payment,
+  PlanningItem,
   PortfolioSummary,
+  ScriptTemplate,
+  Task,
   UserLookup,
   UserSummary,
 } from './types'
@@ -106,4 +112,30 @@ export function useResults(clientId: string) {
 
 export function useUserList(enabled: boolean) {
   return useQuery({ queryKey: ['users'], queryFn: () => api.get<UserSummary[]>('/api/users'), enabled })
+}
+
+// ---------------------------------------------------------------- fase 3
+
+export function useTasks(filters: { open?: boolean; clientId?: string }) {
+  return useQuery({ queryKey: ['tasks', filters], queryFn: () => api.get<Task[]>(`/api/tasks${qs(filters)}`) })
+}
+
+export function useIdeas() {
+  return useQuery({ queryKey: ['ideas'], queryFn: () => api.get<Idea[]>('/api/ideas') })
+}
+
+export function useScripts() {
+  return useQuery({ queryKey: ['scripts'], queryFn: () => api.get<ScriptTemplate[]>('/api/scripts'), staleTime: 60_000 })
+}
+
+export function useContents(filters: { status?: string; clientId?: string; channel?: string }) {
+  return useQuery({ queryKey: ['contents', filters], queryFn: () => api.get<ContentItem[]>(`/api/contents${qs(filters)}`) })
+}
+
+export function useKnowledge() {
+  return useQuery({ queryKey: ['knowledge'], queryFn: () => api.get<KnowledgeDoc[]>('/api/knowledge') })
+}
+
+export function usePlanning(from: string, to: string) {
+  return useQuery({ queryKey: ['planning', from, to], queryFn: () => api.get<PlanningItem[]>(`/api/planning${qs({ from, to })}`) })
 }

@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Dialog, ErrorNote } from './ui'
 
 /** Abas simples e acessíveis (role=tablist). O conteúdo ativo é renderizado pelo chamador. */
@@ -75,6 +76,21 @@ export function useForm<T extends Record<string, string>>(initial: T | (() => T)
 }
 
 export const blankToNull = (s: string) => (s.trim() === '' ? null : s.trim())
+
+export function RowActions({ onEdit, onDelete, label }: { onEdit: () => void; onDelete?: () => void; label: string }) {
+  return (
+    <span className="row-actions">
+      <button type="button" className="icon-btn" aria-label={`Editar ${label}`} onClick={onEdit}>
+        <Pencil size={16} />
+      </button>
+      {onDelete && (
+        <button type="button" className="icon-btn" aria-label={`Excluir ${label}`} onClick={onDelete}>
+          <Trash2 size={16} />
+        </button>
+      )}
+    </span>
+  )
+}
 
 export function FormFooter({ pending, submitLabel, onCancel, disabled }: { pending: boolean; submitLabel: string; onCancel: () => void; disabled?: boolean }) {
   return (

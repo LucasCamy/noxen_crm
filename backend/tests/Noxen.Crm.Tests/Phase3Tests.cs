@@ -164,13 +164,13 @@ public class WorkspaceApiTests(ApiFactory factory)
         await comercial.PostAsJsonAsync("/api/leads", new LeadInput { Company = $"Lead {marker}", NextStep = "Ligar", NextStepDate = Today.AddDays(2) }, Json.Options);
         await marketing.PostAsJsonAsync("/api/contents", new ContentInput { Title = $"Post {marker}", PublishDate = Today.AddDays(4), Status = ContentStatus.Roteiro }, Json.Options);
 
-        var asComercial = (await comercial.GetFromJsonAsync<List<PlanningItem>>("/api/planning", Json.Options))!.Where(i => i.Title.Contains(marker) || i.Subtitle?.Contains("321") == true).ToList();
+        var asComercial = (await comercial.GetFromJsonAsync<List<PlanningItem>>("/api/planning", Json.Options))!.Where(i => i.Title.Contains(marker) || i.Amount == 321m).ToList();
         Assert.Contains(asComercial, i => i.Kind == "Tarefa" && i.Title == $"Tarefa {marker}" && !i.Overdue);
         Assert.Contains(asComercial, i => i.Kind == "Tarefa" && i.Title == $"Atrasada {marker}" && i.Overdue);
         Assert.DoesNotContain(asComercial, i => i.Title == $"Longe {marker}");
         Assert.Contains(asComercial, i => i.Kind == "Follow-up" && i.Title == $"Lead {marker}");
         Assert.Contains(asComercial, i => i.Kind == "Conteúdo");
-        Assert.Contains(asComercial, i => i.Kind == "Vencimento" && i.Title == client.Name);
+        Assert.Contains(asComercial, i => i.Kind == "Vencimento" && i.Title == client.Name && i.Amount == 321m && i.Subtitle == "Cobrança avulsa");
         Assert.Equal(asComercial.Select(i => i.Date).Order().ToList(), asComercial.Select(i => i.Date).ToList());
 
         var asMarketing = (await marketing.GetFromJsonAsync<List<PlanningItem>>("/api/planning", Json.Options))!;

@@ -1,0 +1,220 @@
+/* Fase 3: planejamento, tarefas, conteúdos, ideias, scripts e base estratégica. */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin-bottom: var(--space-16);
+}
+
+.agenda {
+  display: grid;
+  gap: var(--space-24);
+}
+
+.agenda-group h2 {
+  margin-bottom: var(--space-8);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-text-muted);
+}
+
+.agenda-group h2.neg {
+  color: var(--color-status-danger-fg);
+}
+
+.agenda-group ul {
+  display: grid;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agenda-group li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  padding: var(--space-12) var(--space-16);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.agenda-title {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.agenda-title:hover {
+  color: var(--color-text-brand);
+}
+
+.task-list {
+  display: grid;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-12) var(--space-16);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.task.done .task-main strong {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.task-main {
+  display: grid;
+  min-width: 0;
+}
+
+.task-due {
+  white-space: nowrap;
+}
+
+.idea-grid,
+.script-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-16);
+}
+
+.idea,
+.script,
+.doc {
+  display: grid;
+  gap: var(--space-8);
+  align-content: start;
+  padding: var(--space-16);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.idea.done {
+  opacity: 0.6;
+}
+
+.idea header,
+.script header,
+.doc header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.idea h2,
+.script h3,
+.doc h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.script header h3 {
+  font-size: 15px;
+}
+
+.script-group {
+  margin-bottom: var(--space-32);
+}
+
+.script-group > h2 {
+  margin-bottom: var(--space-12);
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.script-body {
+  margin: 0;
+  padding: var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-app);
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.docs {
+  display: grid;
+  gap: var(--space-16);
+  max-width: 860px;
+}
+
+.doc h2 {
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.doc-body {
+  color: var(--color-text-primary);
+}
+
+.composer {
+  display: grid;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-app);
+}
+
+.composer h3 {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.composer select,
+.composer textarea {
+  width: 100%;
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.composer select {
+  min-height: 40px;
+}
+
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+@media (max-width: 860px) {
+  .task {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .task .badge,
+  .task-due {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

@@ -1,13 +1,18 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Building2, Filter, LayoutDashboard, LogOut, Users, Wallet } from 'lucide-react'
+import { BookOpen, Building2, CalendarDays, Clapperboard, Filter, LayoutDashboard, Lightbulb, LogOut, MessageSquareText, Users, Wallet } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar } from './ui'
 
 const NAV = [
   { to: '/', label: 'Painel', icon: LayoutDashboard, end: true, need: null },
+  { to: '/planning', label: 'Planejamento', icon: CalendarDays, end: false, need: null },
   { to: '/leads', label: 'Leads', icon: Filter, end: false, need: null },
   { to: '/clients', label: 'Clientes', icon: Building2, end: false, need: null },
   { to: '/finance', label: 'Financeiro', icon: Wallet, end: false, need: 'finance' },
+  { to: '/contents', label: 'Conteúdos', icon: Clapperboard, end: false, need: null },
+  { to: '/ideas', label: 'Ideias', icon: Lightbulb, end: false, need: null },
+  { to: '/scripts', label: 'Scripts', icon: MessageSquareText, end: false, need: null },
+  { to: '/knowledge', label: 'Base', icon: BookOpen, end: false, need: null },
   { to: '/users', label: 'Usuários', icon: Users, end: false, need: 'admin' },
 ] as const
 

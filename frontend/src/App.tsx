@@ -4,9 +4,14 @@ import { Layout } from './components/Layout'
 import { ClientDetailPage } from './pages/ClientDetailPage'
 import { ClientsPage } from './pages/ClientsPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ContentsPage } from './pages/ContentsPage'
 import { FinancePage } from './pages/FinancePage'
+import { IdeasPage } from './pages/IdeasPage'
+import { KnowledgePage } from './pages/KnowledgePage'
 import { LeadsPage } from './pages/LeadsPage'
 import { LoginPage } from './pages/LoginPage'
+import { PlanningPage } from './pages/PlanningPage'
+import { ScriptsPage } from './pages/ScriptsPage'
 import { UsersPage } from './pages/UsersPage'
 
 function RequireAuth() {
@@ -27,6 +32,11 @@ export default function App() {
         <Route path="clients" element={<ClientsPage />} />
         <Route path="clients/:id" element={<ClientDetailPage />} />
         <Route path="finance" element={<FinancePage />} />
+        <Route path="planning" element={<PlanningPage />} />
+        <Route path="contents" element={<ContentsPage />} />
+        <Route path="ideas" element={<IdeasPage />} />
+        <Route path="scripts" element={<ScriptsPage />} />
+        <Route path="knowledge" element={<KnowledgePage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

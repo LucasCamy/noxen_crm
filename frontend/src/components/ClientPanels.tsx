@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { api } from '../lib/api'
 import { brl, dateBR, dateTimeBR, fromDateTimeLocal, parseMoney, todayISO, toDateTimeLocal } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
@@ -7,7 +7,7 @@ import { useCampaigns, useMeetings, usePayments, useResults } from '../lib/queri
 import type { Campaign, CampaignStatus, Meeting, MonthlyResult } from '../lib/types'
 import type { Tone } from '../lib/domain'
 import { Badge, Dialog, EmptyState, ErrorNote, SelectField, TextAreaField, TextField } from './ui'
-import { ConfirmDialog, FormFooter, Tabs, blankToNull, useForm } from './common'
+import { ConfirmDialog, FormFooter, RowActions, Tabs, blankToNull, useForm } from './common'
 import { PaymentFormDialog, PaymentsTable } from './FinanceParts'
 
 type Tab = 'payments' | 'meetings' | 'campaigns' | 'results'
@@ -39,19 +39,6 @@ function PanelHead({ title, action }: { title: string; action: () => void }) {
         <Plus size={16} aria-hidden /> Adicionar
       </button>
     </div>
-  )
-}
-
-function RowActions({ onEdit, onDelete, label }: { onEdit: () => void; onDelete: () => void; label: string }) {
-  return (
-    <span className="row-actions">
-      <button type="button" className="icon-btn" aria-label={`Editar ${label}`} onClick={onEdit}>
-        <Pencil size={16} />
-      </button>
-      <button type="button" className="icon-btn" aria-label={`Excluir ${label}`} onClick={onDelete}>
-        <Trash2 size={16} />
-      </button>
-    </span>
   )
 }
 

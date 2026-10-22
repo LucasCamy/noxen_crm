@@ -8,6 +8,7 @@ import { useLeadHistory } from '../lib/queries'
 import type { Client, Lead, LeadInput, LeadSource, LeadStage, UserLookup } from '../lib/types'
 import { Badge, Dialog, ErrorNote, SelectField, TextAreaField, TextField } from './ui'
 import { useToast } from './Toast'
+import { MessageComposer } from './MessageComposer'
 
 function useInvalidateCrm() {
   const queryClient = useQueryClient()
@@ -217,6 +218,8 @@ function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: Lea
           )}
         </section>
       )}
+
+      {lead && canWrite && lead.stage !== 'Fechado' && <MessageComposer lead={lead} />}
 
       <footer className="dialog-footer">
         {movable && (

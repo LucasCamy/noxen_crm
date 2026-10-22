@@ -1,27 +1,29 @@
 # Roadmap
 
-Mapeia as seções do CRM original ([central/LEIA-ME.md](../reference/noxencrm-original/central/LEIA-ME.md)) para o novo projeto. Proposta de ordem; ajuste conforme prioridade do negócio.
+Mapeia as seções do CRM original ([central/LEIA-ME.md](../reference/noxencrm-original/central/LEIA-ME.md)) para o novo projeto.
 
 | Fase | Conteúdo | Origem no original | Estado |
 |---|---|---|---|
-| 1 | Autenticação e papéis, leads (funil), clientes (carteira), painel com MRR e meta, outbox + RabbitMQ + Redis | `crm/leads.md`, `crm/carteira.md`, `clientes/*/perfil.md` | **Backend concluído e testado** |
-| 1b | Frontend: login, painel, kanban de leads, lista e ficha de clientes | Central (Visão geral, Clientes, Prospecção) | **Concluído e conferido no navegador**, sem Figma (dispensado pelo responsável; o [arquivo Figma](https://www.figma.com/design/hWeWyT7Q9So3onOVEZwa33) tem só tokens e componentes base) |
-| 2 | Financeiro: histórico de pagamentos por cliente (mensalidades, status, atraso), receitas avulsas e despesas | `clientes/*/financeiro.md`, `crm/financeiro-noxen.md` | Não iniciado |
-| 2 | Reuniões, campanhas e resultados por cliente | `clientes/*/reunioes.md`, `campanhas.md`, `resultados.md` | Não iniciado |
-| 3 | Prospecção: mensagens por lead (WhatsApp/Instagram), scripts comerciais, lembretes de follow-up (job agendado + fila) | `mensagens-prospeccao.json`, `scripts.md` | Não iniciado |
-| 3 | Conteúdos, ideias, tarefas/planejamento e base estratégica | `conteudos.md`, `ideias.md`, `tarefas.md`, `base.md` | Não iniciado |
-| 4 | Estúdio criativo (projetos, kits de marca, referências, upload de arquivos em armazenamento de objetos) | `estudio.json` | Não iniciado |
-| 4 | Buscador de empresas (Google Maps Scraper Kit) como jobs na fila, importando para leads | `ferramentas/google-maps-scraper-kit` | Não iniciado; revisar LGPD e termos do Google antes |
-| — | Importador dos arquivos `.md` do original para o banco | `modelos/crm`, dados reais fora do git | Não iniciado; dados reais exigem cuidado (LGPD) |
+| 1 | Autenticação e papéis, leads (funil), clientes (carteira), painel com MRR e meta, outbox + RabbitMQ + Redis; frontend de login, painel, kanban e clientes | `crm/leads.md`, `crm/carteira.md`, `clientes/*/perfil.md` | **Concluída** (sem Figma: dispensado pelo responsável; o [arquivo Figma](https://www.figma.com/design/hWeWyT7Q9So3onOVEZwa33) tem só tokens e componentes base) |
+| 2 | Financeiro: cobranças por cliente (atraso derivado, mensalidade gerada pelo Worker), receitas avulsas, despesas e resumo do mês; reuniões, campanhas e resultados mensais por cliente; gestão de usuários | `clientes/*/financeiro.md`, `reunioes.md`, `campanhas.md`, `resultados.md`, `crm/financeiro-noxen.md` | **Concluída** |
+| 3 | Planejamento (agenda unificada + tarefas), conteúdos, ideias, scripts comerciais com gerador de mensagem de abordagem no lead, base estratégica | `central/conteudo/*.md`, `mensagens-prospeccao.json` | **Concluída** |
+| 4 | Estúdio criativo (projetos, kits de marca, referências) | `estudio.json` | Ver abaixo |
+| 4 | Buscador de empresas (Google Maps) | `ferramentas/google-maps-scraper-kit` | **Não será feito como no original** (ver abaixo) |
+| — | Importador dos arquivos `.md` do original para o banco | `modelos/crm`, dados reais fora do git | Não iniciado; exige os dados reais e cuidado com LGPD |
+
+## Decisões sobre o que ficou de fora
+
+- **Buscador do Google Maps:** o próprio original registra que raspar o Maps vai contra os termos do Google e que os dados são pessoais (LGPD). Não implementei. A alternativa legítima é a API oficial (Google Places) com chave e faturamento próprios, a decidir.
+- **Upload de arquivos (imagens, vídeos, PDFs do estúdio):** exige armazenamento de objetos (ex.: MinIO/S3), varredura de arquivos e política de retenção. O estúdio, se feito, começa só com links.
+- **Importador de dados reais:** não tenho os dados (ficam fora do git do original); precisa de formato de entrada confirmado e de revisão de LGPD antes de rodar.
 
 ## Pendências técnicas conhecidas
 
-- Limpeza periódica de `outbox_messages` processadas (ADR-0005).
-- Remoção/anonimização de leads e clientes (LGPD): hoje não há exclusão.
-- CI (build + testes) ainda não configurada.
 - Tipos do frontend espelhados à mão dos DTOs: gerar o cliente TypeScript a partir do OpenAPI.
 - Revisar o armazenamento do refresh token na SPA (hoje `localStorage`; ver ADR-0004) antes de produção.
 - Kanban carrega até 50 leads por etapa; falta paginação por coluna quando passar disso.
-- Sem tela de gestão de usuários (a API já tem `/api/users`, só Admin).
-- Sem testes automatizados de interface (a conferência da fase 1 foi manual no navegador).
-- Frontend não tem Dockerfile nem serviço no `docker-compose`.
+- Sem testes automatizados de interface (a conferência foi manual no navegador, em contêineres).
+- O workflow de CI (`.github/workflows/ci.yml`) foi escrito mas **não foi executado** (só roda no GitHub).
+- Lembretes de follow-up por notificação (hoje só aparecem na agenda e no painel).
+- Autorização é por papel; não há restrição por responsável (todo usuário de escrita edita tudo).
+- Exclusão: tarefas, ideias, scripts, conteúdos, base, reuniões, campanhas e resultados podem ser apagados (sem lixeira). Leads e clientes não têm exclusão (LGPD: anonimização/remoção ainda por definir).
