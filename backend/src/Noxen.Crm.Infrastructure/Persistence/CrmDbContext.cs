@@ -6,6 +6,7 @@ using Noxen.Crm.Domain.Finance;
 using Noxen.Crm.Domain.Leads;
 using Noxen.Crm.Domain.Marketing;
 using Noxen.Crm.Domain.Outbox;
+using Noxen.Crm.Domain.Workspace;
 
 namespace Noxen.Crm.Infrastructure.Persistence;
 
@@ -22,6 +23,11 @@ public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
     public DbSet<ClientMeeting> ClientMeetings => Set<ClientMeeting>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<MonthlyResult> MonthlyResults => Set<MonthlyResult>();
+    public DbSet<TaskItem> Tasks => Set<TaskItem>();
+    public DbSet<Idea> Ideas => Set<Idea>();
+    public DbSet<ScriptTemplate> Scripts => Set<ScriptTemplate>();
+    public DbSet<ContentItem> Contents => Set<ContentItem>();
+    public DbSet<KnowledgeDoc> KnowledgeDocs => Set<KnowledgeDoc>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -178,6 +184,76 @@ public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
             e.Property(x => x.Version).IsRowVersion();
             e.HasIndex(x => new { x.ClientId, x.Month }).IsUnique();
             e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<TaskItem>(e =>
+        {
+            e.ToTable("tasks");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Notes).HasMaxLength(4000);
+            e.Property(x => x.Type).HasMaxLength(60);
+            e.Property(x => x.Priority).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasIndex(x => new { x.Status, x.DueDate });
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne<Lead>().WithMany().HasForeignKey(x => x.LeadId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.AssigneeId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<Idea>(e =>
+        {
+            e.ToTable("ideas");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Category).HasMaxLength(100);
+            e.Property(x => x.Notes).HasMaxLength(4000);
+            e.Property(x => x.NextStep).HasMaxLength(500);
+            e.Property(x => x.Priority).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<ScriptTemplate>(e =>
+        {
+            e.ToTable("scripts");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Stage).HasConversion<string>().HasMaxLength(30);
+            e.Property(x => x.Channel).HasMaxLength(100);
+            e.Property(x => x.Niche).HasMaxLength(100);
+            e.Property(x => x.Usage).HasMaxLength(500);
+            e.Property(x => x.Body).HasMaxLength(8000).IsRequired();
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasIndex(x => x.Stage);
+        });
+
+        b.Entity<ContentItem>(e =>
+        {
+            e.ToTable("contents");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Format).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.Channel).HasMaxLength(100);
+            e.Property(x => x.Objective).HasMaxLength(500);
+            e.Property(x => x.Body).HasMaxLength(20000);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasIndex(x => new { x.Status, x.PublishDate });
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<KnowledgeDoc>(e =>
+        {
+            e.ToTable("knowledge_docs");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Body).HasMaxLength(20000).IsRequired();
+            e.Property(x => x.Source).HasMaxLength(300);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasIndex(x => x.SortOrder);
         });
     }
 }
