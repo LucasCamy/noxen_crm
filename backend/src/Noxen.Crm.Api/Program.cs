@@ -8,6 +8,7 @@ using Noxen.Crm.Api.Common;
 using Noxen.Crm.Api.Dashboard;
 using Noxen.Crm.Api.Finance;
 using Noxen.Crm.Api.Leads;
+using Noxen.Crm.Api.Studio;
 using Noxen.Crm.Api.Workspace;
 using Noxen.Crm.Infrastructure;
 using Noxen.Crm.Infrastructure.Persistence;
@@ -81,6 +82,7 @@ app.MapDashboard();
 app.MapFinance();
 app.MapClientActivities();
 app.MapWorkspace();
+app.MapStudio();
 
 app.Run();
 

@@ -92,6 +92,17 @@ export function whatsappUrlWithText(raw: string | null | undefined, text: string
   return base ? `${base}?text=${encodeURIComponent(text)}` : null
 }
 
+/** Devolve a URL só se for http(s); qualquer outro esquema (javascript:, data:) vira null. Defesa em profundidade: a API já valida. */
+export function safeUrl(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  try {
+    const u = new URL(raw)
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.toString() : null
+  } catch {
+    return null
+  }
+}
+
 export function firstName(fullName: string): string {
   return fullName.trim().split(/\s+/)[0] ?? ''
 }

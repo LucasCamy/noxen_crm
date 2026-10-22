@@ -7,5 +7,7 @@
 | [0003](0003-camadas-e-modulos.md) | API e Worker em camadas simples, sem Repository/mediator | Proposta |
 | [0004](0004-autenticacao-e-papeis.md) | Identity + JWT curto + refresh rotativo; três papéis; um único tenant | Proposta |
 | [0005](0005-outbox-rabbitmq-e-cache-redis.md) | Outbox transacional + RabbitMQ; Redis como cache de leitura | Proposta |
+| [0006](0006-cobrancas-e-lancamentos.md) | Cobranças e lançamentos separados; atraso derivado; mensalidade gerada pelo Worker | Proposta |
+| [0007](0007-migracoes-em-conteineres.md) | Migrations aplicadas por um serviço `migrate` (bundle do EF Core) | Proposta |
 
 "Aceita" = escolha confirmada pelo responsável do projeto. "Proposta" = já implementada pelo agente seguindo o pedido, aguardando confirmação explícita. Aceita não implica implantada.

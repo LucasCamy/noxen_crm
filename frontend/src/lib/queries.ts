@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { api, qs } from './api'
 import type {
+  BrandKit,
   Campaign,
   Client,
   ClientStatus,
@@ -18,7 +19,9 @@ import type {
   Payment,
   PlanningItem,
   PortfolioSummary,
+  ReferenceLink,
   ScriptTemplate,
+  StudioProject,
   Task,
   UserLookup,
   UserSummary,
@@ -134,6 +137,18 @@ export function useContents(filters: { status?: string; clientId?: string; chann
 
 export function useKnowledge() {
   return useQuery({ queryKey: ['knowledge'], queryFn: () => api.get<KnowledgeDoc[]>('/api/knowledge') })
+}
+
+export function useStudioProjects() {
+  return useQuery({ queryKey: ['studio-projects'], queryFn: () => api.get<StudioProject[]>('/api/studio/projects') })
+}
+
+export function useBrandKits() {
+  return useQuery({ queryKey: ['studio-kits'], queryFn: () => api.get<BrandKit[]>('/api/studio/kits') })
+}
+
+export function useReferences(tag: string) {
+  return useQuery({ queryKey: ['studio-references', tag], queryFn: () => api.get<ReferenceLink[]>(`/api/studio/references${qs({ tag })}`) })
 }
 
 export function usePlanning(from: string, to: string) {

@@ -2,7 +2,7 @@
 
 CRM da Noxen Assessoria: funil de leads, carteira de clientes, MRR e meta de clientes ativos. Reescrita do [CRM original](reference/noxencrm-original) (arquivos Markdown + página HTML gerada) como aplicação com API, PostgreSQL, Redis e RabbitMQ.
 
-**Estado:** fase 1 pronta de ponta a ponta: backend (autenticação, leads, clientes, painel da carteira, fila e cache) e frontend (login, painel, kanban de leads, clientes). Veja o [roadmap](docs/roadmap.md).
+**Estado:** fases 1 a 3 e o estúdio criativo prontos de ponta a ponta (backend, frontend e Docker): login e papéis, painel, leads (kanban), clientes, financeiro, planejamento, conteúdos, ideias, scripts, base estratégica, estúdio e usuários. Ficaram de fora o buscador do Google Maps, upload de arquivos e o importador de dados reais (veja o [roadmap](docs/roadmap.md)).
 
 ## Material de referência (fora do git)
 
@@ -84,6 +84,7 @@ Todas as rotas exigem token `Bearer`, exceto login, refresh, logout e `/health/*
 | `GET /api/leads` (`stage`, `search`, `ownerId`, `page`, `pageSize`) · `GET /api/leads/{id}` · `/history` | autenticado | funil de prospecção |
 | `POST /api/leads` · `PUT /api/leads/{id}` · `POST /api/leads/{id}/stage` | Admin, Comercial | cria, edita (com `version`) e move de etapa |
 | `POST /api/leads/{id}/convert` | Admin, Comercial | fecha o lead e cria o cliente (idempotente) |
+| `DELETE /api/leads/{id}` | Admin | exclusão definitiva (remoção de dados pessoais); bloqueada se o lead já virou cliente |
 | `GET /api/clients` · `GET /api/clients/{id}` | autenticado | carteira |
 | `POST /api/clients` · `PUT /api/clients/{id}` · `POST /api/clients/{id}/status` | Admin, Comercial | cadastro e ciclo de vida do cliente |
 | `GET /api/dashboard/portfolio` | autenticado | clientes ativos vs meta, MRR, leads por etapa, follow-ups vencidos (cache no Redis) |
@@ -92,6 +93,7 @@ Todas as rotas exigem token `Bearer`, exceto login, refresh, logout e `/health/*
 | `GET /api/finance/summary?month=AAAA-MM` · `POST /api/finance/charges/generate` | Admin, Comercial · só Admin | caixa do mês; geração manual das mensalidades (o Worker também gera todo mês) |
 | `/api/clients/{id}/meetings` · `/campaigns` · `/results` (+ `PUT/DELETE` em `/api/meetings`, `/campaigns`, `/results`) | leitura: todos · escrita: todos os papéis | reuniões, campanhas e resultados mensais (CPL, custo por venda e ROAS) |
 | `/api/tasks` · `/api/ideas` · `/api/scripts` · `/api/contents` · `/api/knowledge` | leitura: todos · escrita: todos os papéis | tarefas, ideias, scripts comerciais, conteúdos e base estratégica |
+| `/api/studio/projects` · `/kits` · `/references` | leitura: todos · escrita: todos os papéis | projetos criativos (briefing → entregue), kits de marca e referências por link (só http/https) |
 | `GET /api/planning?from&to` | autenticado | agenda unificada: tarefas, follow-ups, reuniões, vencimentos (só Admin/Comercial) e publicações, com atrasados |
 
 Etapas do lead: `AContatar → Contatado → Respondeu → ReuniaoMarcada → PropostaEnviada → Fechado | Perdido`. Perdido exige motivo; Fechado só pela conversão em cliente. Status do cliente: `Implementacao`, `Ativo`, `Pausado`, `Encerrado`. O MRR soma as mensalidades dos clientes `Ativo`. Meta e prazo vêm de `Portfolio:TargetClients` e `Portfolio:Deadline` (padrão: 10 clientes até 30/11/2026).

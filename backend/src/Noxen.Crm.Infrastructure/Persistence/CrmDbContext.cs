@@ -6,6 +6,7 @@ using Noxen.Crm.Domain.Finance;
 using Noxen.Crm.Domain.Leads;
 using Noxen.Crm.Domain.Marketing;
 using Noxen.Crm.Domain.Outbox;
+using Noxen.Crm.Domain.Studio;
 using Noxen.Crm.Domain.Workspace;
 
 namespace Noxen.Crm.Infrastructure.Persistence;
@@ -28,6 +29,9 @@ public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
     public DbSet<ScriptTemplate> Scripts => Set<ScriptTemplate>();
     public DbSet<ContentItem> Contents => Set<ContentItem>();
     public DbSet<KnowledgeDoc> KnowledgeDocs => Set<KnowledgeDoc>();
+    public DbSet<StudioProject> StudioProjects => Set<StudioProject>();
+    public DbSet<BrandKit> BrandKits => Set<BrandKit>();
+    public DbSet<ReferenceLink> ReferenceLinks => Set<ReferenceLink>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -254,6 +258,49 @@ public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
             e.Property(x => x.Source).HasMaxLength(300);
             e.Property(x => x.Version).IsRowVersion();
             e.HasIndex(x => x.SortOrder);
+        });
+
+        b.Entity<StudioProject>(e =>
+        {
+            e.ToTable("studio_projects");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.Brief).HasMaxLength(8000);
+            e.Property(x => x.VisualDirection).HasMaxLength(4000);
+            e.Property(x => x.Storyboard).HasMaxLength(8000);
+            e.Property(x => x.Deliverables).HasMaxLength(4000);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasIndex(x => x.Status);
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<BrandKit>(e =>
+        {
+            e.ToTable("brand_kits");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Colors).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Fonts).HasMaxLength(500);
+            e.Property(x => x.Tone).HasMaxLength(2000);
+            e.Property(x => x.Elements).HasMaxLength(2000);
+            e.Property(x => x.LogoUrl).HasMaxLength(1000);
+            e.Ignore(x => x.ColorList);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<ReferenceLink>(e =>
+        {
+            e.ToTable("reference_links");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Url).HasMaxLength(1000).IsRequired();
+            e.Property(x => x.Tags).HasMaxLength(300);
+            e.Property(x => x.Note).HasMaxLength(2000);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

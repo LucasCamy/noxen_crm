@@ -12,6 +12,7 @@ import { LeadsPage } from './pages/LeadsPage'
 import { LoginPage } from './pages/LoginPage'
 import { PlanningPage } from './pages/PlanningPage'
 import { ScriptsPage } from './pages/ScriptsPage'
+import { StudioPage } from './pages/StudioPage'
 import { UsersPage } from './pages/UsersPage'
 
 function RequireAuth() {
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="planning" element={<PlanningPage />} />
         <Route path="contents" element={<ContentsPage />} />
         <Route path="ideas" element={<IdeasPage />} />
+        <Route path="studio" element={<StudioPage />} />
         <Route path="scripts" element={<ScriptsPage />} />
         <Route path="knowledge" element={<KnowledgePage />} />
         <Route path="users" element={<UsersPage />} />

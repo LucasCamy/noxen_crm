@@ -338,6 +338,48 @@ export interface KnowledgeDoc {
   version: number
 }
 
+export type StudioStatus = 'Briefing' | 'EmCriacao' | 'Revisao' | 'Aprovado' | 'Entregue'
+export type StudioKind = 'Imagem' | 'Carrossel' | 'Motion' | 'Video' | 'Anuncio' | 'Outro'
+
+export interface StudioProject {
+  id: string
+  title: string
+  clientId: string | null
+  clientName: string | null
+  kind: StudioKind
+  status: StudioStatus
+  brief: string | null
+  visualDirection: string | null
+  storyboard: string | null
+  deliverables: string | null
+  dueDate: string | null
+  version: number
+}
+
+export interface BrandKit {
+  id: string
+  clientId: string | null
+  clientName: string | null
+  name: string
+  colors: string[]
+  fonts: string | null
+  tone: string | null
+  elements: string | null
+  logoUrl: string | null
+  version: number
+}
+
+export interface ReferenceLink {
+  id: string
+  title: string
+  url: string
+  tags: string | null
+  note: string | null
+  clientId: string | null
+  clientName: string | null
+  version: number
+}
+
 export interface PlanningItem {
   date: string
   kind: string

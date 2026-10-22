@@ -7,6 +7,8 @@ import type {
   LeadStage,
   Priority,
   ScriptStage,
+  StudioKind,
+  StudioStatus,
   TodoStatus,
 } from './types'
 
@@ -118,3 +120,21 @@ export const CONTENT_STATUSES: { key: ContentStatus; label: string; tone: Tone }
 export const contentStatusInfo = (k: ContentStatus) => CONTENT_STATUSES.find((s) => s.key === k)!
 
 export const CHANNELS = ['Instagram', 'Facebook', 'TikTok', 'WhatsApp', 'Meta Ads', 'Google', 'Site']
+
+export const STUDIO_STATUSES: { key: StudioStatus; label: string; tone: Tone }[] = [
+  { key: 'Briefing', label: 'Briefing', tone: 'neutral' },
+  { key: 'EmCriacao', label: 'Em criação', tone: 'info' },
+  { key: 'Revisao', label: 'Revisão', tone: 'warning' },
+  { key: 'Aprovado', label: 'Aprovado', tone: 'brand' },
+  { key: 'Entregue', label: 'Entregue', tone: 'success' },
+]
+
+export const STUDIO_KINDS: { key: StudioKind; label: string }[] = [
+  { key: 'Imagem', label: 'Imagem' },
+  { key: 'Carrossel', label: 'Carrossel' },
+  { key: 'Motion', label: 'Motion' },
+  { key: 'Video', label: 'Vídeo' },
+  { key: 'Anuncio', label: 'Anúncio' },
+  { key: 'Outro', label: 'Outro' },
+]
+export const studioKindLabel = (k: StudioKind) => STUDIO_KINDS.find((x) => x.key === k)?.label ?? k
