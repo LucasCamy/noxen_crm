@@ -1,0 +1,23 @@
+# Segredos e ambiente local
+.env
+.env.*
+!.env.example
+*.pfx
+*.pem
+
+# Dados de produção/clientes nunca entram no repositório
+backups/
+*.tar.gz
+
+# .NET
+backend/**/bin/
+backend/**/obj/
+*.user
+.vs/
+
+# Frontend
+node_modules/
+frontend/dist/
+
+# Material de consulta: clones separados (veja README)
+reference/

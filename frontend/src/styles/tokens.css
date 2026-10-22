@@ -1,0 +1,96 @@
+/*
+ * Tokens de design do Noxen CRM. Espelham as variáveis do arquivo Figma "Noxen CRM"
+ * (coleções Primitives, Color, Spacing e Radius); os nomes seguem a sintaxe de código WEB de lá.
+ */
+:root {
+  /* Primitivas */
+  --white: #ffffff;
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --brand-50: #f3f0ff;
+  --brand-100: #e9e3ff;
+  --brand-500: #6d4aff;
+  --brand-600: #5b3ae8;
+  --brand-700: #4a2dc7;
+  --green-50: #ecfdf5;
+  --green-700: #047857;
+  --amber-50: #fffbeb;
+  --amber-700: #b45309;
+  --red-50: #fef2f2;
+  --red-700: #b91c1c;
+  --blue-50: #eff6ff;
+  --blue-700: #1d4ed8;
+  --teal-50: #f0fdfa;
+  --teal-700: #0f766e;
+
+  /* Semânticas */
+  --color-bg-app: var(--slate-50);
+  --color-bg-surface: var(--white);
+  --color-bg-subtle: var(--slate-100);
+  --color-bg-sidebar: var(--slate-900);
+  --color-bg-sidebar-active: var(--slate-800);
+  --color-bg-brand: var(--brand-600);
+  --color-bg-brand-hover: var(--brand-700);
+  --color-bg-brand-subtle: var(--brand-50);
+  --color-text-primary: var(--slate-900);
+  --color-text-secondary: var(--slate-600);
+  --color-text-muted: var(--slate-500);
+  --color-text-on-brand: var(--white);
+  --color-text-on-sidebar: var(--slate-300);
+  --color-text-on-sidebar-strong: var(--white);
+  --color-text-brand: var(--brand-700);
+  --color-border-default: var(--slate-200);
+  --color-border-strong: var(--slate-300);
+  --color-border-focus: var(--brand-500);
+  --color-border-danger: var(--red-700);
+  --color-border-sidebar: var(--slate-800);
+
+  --color-status-neutral-bg: var(--slate-100);
+  --color-status-neutral-fg: var(--slate-700);
+  --color-status-info-bg: var(--blue-50);
+  --color-status-info-fg: var(--blue-700);
+  --color-status-teal-bg: var(--teal-50);
+  --color-status-teal-fg: var(--teal-700);
+  --color-status-warning-bg: var(--amber-50);
+  --color-status-warning-fg: var(--amber-700);
+  --color-status-brand-bg: var(--brand-100);
+  --color-status-brand-fg: var(--brand-700);
+  --color-status-success-bg: var(--green-50);
+  --color-status-success-fg: var(--green-700);
+  --color-status-danger-bg: var(--red-50);
+  --color-status-danger-fg: var(--red-700);
+
+  /* Espaçamento e raios */
+  --space-0: 0;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
+
+  /* Tipografia (estilos de texto do Figma) */
+  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --shadow-dialog: 0 24px 48px -12px rgb(15 23 42 / 0.28);
+  --shadow-drag: 0 12px 24px -8px rgb(15 23 42 / 0.25);
+}

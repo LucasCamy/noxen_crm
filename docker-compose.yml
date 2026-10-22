@@ -1,0 +1,102 @@
+# Noxen CRM — infraestrutura local e, opcionalmente, a aplicação.
+#
+#   cp .env.example .env                              # ajuste os valores
+#   docker compose up -d                              # só PostgreSQL, Redis e RabbitMQ (para `dotnet run` no host)
+#   docker compose --profile app up -d --build        # também sobe a API e o Worker em contêineres
+#
+# Portas expostas apenas em 127.0.0.1. Os valores do .env.example servem somente para desenvolvimento local.
+
+name: noxen-crm
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-noxen_crm}
+      POSTGRES_USER: ${POSTGRES_USER:-noxen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Cache descartável: sem persistência (o painel é recalculado a partir do PostgreSQL).
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-noxen}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?defina RABBITMQ_PASSWORD no .env}
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672" # console de administração
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    profiles: ["app"]
+    build:
+      context: ./backend
+      target: api
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-noxen_crm};Username=${POSTGRES_USER:-noxen};Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__Redis: redis:6379
+      Jwt__Key: ${JWT_KEY:?defina JWT_KEY (32+ caracteres) no .env}
+      Database__MigrateOnStartup: ${DATABASE_MIGRATE_ON_STARTUP:-false}
+      AdminSeed__Email: ${ADMIN_EMAIL:-}
+      AdminSeed__Password: ${ADMIN_PASSWORD:-}
+      Cors__Origins__0: ${CORS_ORIGIN:-http://localhost:5173}
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  worker:
+    profiles: ["app"]
+    build:
+      context: ./backend
+      target: worker
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    environment:
+      DOTNET_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-noxen_crm};Username=${POSTGRES_USER:-noxen};Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__Redis: redis:6379
+      RabbitMq__Host: rabbitmq
+      RabbitMq__User: ${RABBITMQ_USER:-noxen}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD}
+
+volumes:
+  postgres_data:
+  rabbitmq_data:

@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Noxen.Crm.Api/Noxen.Crm.Api.csproj" />
+    <Project Path="src/Noxen.Crm.Domain/Noxen.Crm.Domain.csproj" />
+    <Project Path="src/Noxen.Crm.Infrastructure/Noxen.Crm.Infrastructure.csproj" />
+    <Project Path="src/Noxen.Crm.Worker/Noxen.Crm.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Noxen.Crm.Tests/Noxen.Crm.Tests.csproj" />
+  </Folder>
+</Solution>
