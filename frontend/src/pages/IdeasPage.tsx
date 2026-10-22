@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { Lightbulb, Plus } from '@phosphor-icons/react'
+import { Lightbulb } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { IDEA_STATUSES, PRIORITIES, ideaStatusInfo, priorityInfo } from '../lib/domain'
-import { dateBR } from '../lib/format'
+import { EMPTY } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useIdeas } from '../lib/queries'
 import type { Idea, IdeaStatus, Priority } from '../lib/types'
-import { Badge, Button, CardGridSkeleton, Dialog, EmptyState, ErrorNote, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, Card, CardGridSkeleton, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, ItemTitle, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 
@@ -21,11 +21,7 @@ export function IdeasPage() {
       <PageHeader
         title="Ideias"
         subtitle="Oportunidades e iniciativas para analisar, aprovar e executar"
-        actions={
-          <Button type="button" variant="primary" onClick={() => setEditing({ idea: null })}>
-            <Plus size={18} aria-hidden /> Nova ideia
-          </Button>
-        }
+        actions={<CreateButton onClick={() => setEditing({ idea: null })}>Nova ideia</CreateButton>}
       />
       {isPending ? (
         <CardGridSkeleton cards={6} />
@@ -35,11 +31,7 @@ export function IdeasPage() {
         <EmptyState
           icon={Lightbulb}
           title="Nenhuma ideia ainda"
-          action={
-            <Button variant="primary" onClick={() => setEditing({ idea: null })}>
-              <Plus size={16} aria-hidden /> Nova ideia
-            </Button>
-          }
+          action={<CreateButton onClick={() => setEditing({ idea: null })}>Nova ideia</CreateButton>}
         >
           Registre ideias de conteúdo, ofertas e melhorias para não perdê-las.
         </EmptyState>
@@ -49,23 +41,28 @@ export function IdeasPage() {
             const st = ideaStatusInfo(i.status)
             const p = priorityInfo(i.priority)
             return (
-              <article key={i.id} className={`idea${i.status === 'Descartada' ? ' done' : ''}`}>
-                <header>
+              <Card as="article" key={i.id} className={i.status === 'Descartada' ? 'idea done' : 'idea'}>
+                <div className="card-row">
                   <Badge tone={st.tone}>{st.label}</Badge>
                   <Badge tone={p.tone}>Prioridade {p.label.toLowerCase()}</Badge>
                   <span className="spacer" />
                   <RowActions label={i.title} onEdit={() => setEditing({ idea: i })} onDelete={() => setDeleting(i)} />
-                </header>
-                <h2>{i.title}</h2>
+                </div>
+                <ItemTitle>{i.title}</ItemTitle>
                 {i.category && <p className="muted small">{[i.category, i.clientName].filter(Boolean).join(' · ')}</p>}
                 {i.notes && <p className="pre">{i.notes}</p>}
                 {(i.nextStep || i.date) && (
                   <p className="next-steps">
-                    <strong>Próximo passo:</strong> {i.nextStep ?? '—'}
-                    {i.date && ` · ${dateBR(i.date)}`}
+                    <strong>Próximo passo:</strong> {i.nextStep ?? EMPTY}
+                    {i.date && (
+                      <>
+                        {' · '}
+                        <DateValue value={i.date} />
+                      </>
+                    )}
                   </p>
                 )}
-              </article>
+              </Card>
             )
           })}
         </div>

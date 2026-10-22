@@ -2,6 +2,7 @@ import { lazy } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import { Layout } from './components/Layout'
+import { Loading } from './components/ui'
 import { LoginPage } from './pages/LoginPage'
 
 // Cada tela vira um chunk próprio: o painel abre sem baixar Finanças, Studio etc.
@@ -21,7 +22,12 @@ const UsersPage = lazy(() => import('./pages/UsersPage').then((m) => ({ default:
 function RequireAuth() {
   const { status } = useAuth()
   const location = useLocation()
-  if (status === 'loading') return <p className="loading loading-full">Carregando…</p>
+  if (status === 'loading')
+    return (
+      <div className="session-loading">
+        <Loading label="Restaurando sessão" />
+      </div>
+    )
   if (status === 'anonymous') return <Navigate to="/login" replace state={{ from: location.pathname }} />
   return <Layout />
 }

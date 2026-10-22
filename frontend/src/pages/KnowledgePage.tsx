@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react'
-import { BookOpen, Plus } from '@phosphor-icons/react'
+import { BookOpen } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { useCrmMutation } from '../lib/mutations'
 import { useKnowledge } from '../lib/queries'
 import type { KnowledgeDoc } from '../lib/types'
-import { Button, CardGridSkeleton, Dialog, EmptyState, ErrorNote, PageHeader, TextAreaField, TextField } from '../components/ui'
+import { Card, CardGridSkeleton, CreateButton, Dialog, EmptyState, ErrorNote, PageHeader, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 
 export function KnowledgePage() {
@@ -19,11 +19,7 @@ export function KnowledgePage() {
       <PageHeader
         title="Base estratégica"
         subtitle="Posicionamento, ofertas, tom de voz e decisões da agência"
-        actions={
-          <Button type="button" variant="primary" onClick={() => setEditing({ doc: null })}>
-            <Plus size={18} aria-hidden /> Nova seção
-          </Button>
-        }
+        actions={<CreateButton onClick={() => setEditing({ doc: null })}>Nova seção</CreateButton>}
       />
       {isPending ? (
         <CardGridSkeleton cards={3} />
@@ -33,25 +29,17 @@ export function KnowledgePage() {
         <EmptyState
           icon={BookOpen}
           title="A base está vazia"
-          action={
-            <Button variant="primary" onClick={() => setEditing({ doc: null })}>
-              <Plus size={16} aria-hidden /> Nova seção
-            </Button>
-          }
+          action={<CreateButton onClick={() => setEditing({ doc: null })}>Nova seção</CreateButton>}
         >
           Registre aqui o posicionamento, as ofertas e o tom de voz para toda a equipe consultar.
         </EmptyState>
       ) : (
         <div className="docs">
           {data.map((d) => (
-            <article key={d.id} className="doc">
-              <header>
-                <h2>{d.title}</h2>
-                <RowActions label={d.title} onEdit={() => setEditing({ doc: d })} onDelete={() => setDeleting(d)} />
-              </header>
+            <Card as="article" key={d.id} title={d.title} action={<RowActions label={d.title} onEdit={() => setEditing({ doc: d })} onDelete={() => setDeleting(d)} />}>
               <p className="pre doc-body">{d.body}</p>
               {d.source && <p className="muted small">Fonte: {d.source}</p>}
-            </article>
+            </Card>
           ))}
         </div>
       )}

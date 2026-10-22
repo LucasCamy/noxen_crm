@@ -1,5 +1,7 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react'
+import { Plus } from '@phosphor-icons/react'
 import { cn } from '../../lib/cn'
+import { ICON } from './icons'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-ghost'
 
@@ -38,6 +40,18 @@ export function ButtonLink({ variant, size, block, className, children, ...rest 
     <a className={cn(classes({ variant, size, block }), className)} {...rest}>
       {children}
     </a>
+  )
+}
+
+/**
+ * Botão de criar ("Novo lead", "Nova tarefa"): sempre primário, com o mesmo ícone e tamanho.
+ * Aparece no cabeçalho da página; nos estados vazios, repete a mesma ação com o mesmo componente.
+ */
+export function CreateButton({ children, ...rest }: Omit<ButtonProps, 'variant' | 'size' | 'block'>) {
+  return (
+    <Button variant="primary" {...rest}>
+      <Plus size={ICON.control} aria-hidden /> {children}
+    </Button>
   )
 }
 

@@ -61,6 +61,7 @@
   /* ---------- tipografia */
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --fs-2xs: 11px;
   --fs-xs: 12px;
   --fs-sm: 13px;
   --fs-md: 14px;
@@ -69,7 +70,11 @@
   --fs-h2: 18px;
   --fs-h1: 24px;
   --fs-display: 32px;
+  --fs-stat-sm: 22px;
+  --fs-stat: 28px;
   --fs-metric: 36px;
+  --fs-hero-sm: 44px;
+  --fs-hero: 52px;
   --lh-xs: 16px;
   --lh-sm: 18px;
   --lh-md: 20px;
@@ -111,6 +116,9 @@
   --bg-brand-hover: var(--brand-700);
   --bg-brand-subtle: var(--brand-50);
   --bg-scrim: rgb(14 16 26 / 0.46);
+  --bg-danger: #c1362b;
+  --bg-danger-hover: #a92d23;
+  --text-on-danger: #ffffff;
 
   --text-1: #12141c;
   --text-2: #4a5163;
@@ -171,6 +179,9 @@
   --bg-brand-hover: #7a6cea;
   --bg-brand-subtle: #1c1a3a;
   --bg-scrim: rgb(3 4 8 / 0.6);
+  --bg-danger: #c8463b;
+  --bg-danger-hover: #d4574c;
+  --text-on-danger: #ffffff;
 
   --text-1: #eceef4;
   --text-2: #adb3c2;
@@ -229,6 +240,9 @@
     --bg-brand-hover: #7a6cea;
     --bg-brand-subtle: #1c1a3a;
     --bg-scrim: rgb(3 4 8 / 0.6);
+    --bg-danger: #c8463b;
+    --bg-danger-hover: #d4574c;
+    --text-on-danger: #ffffff;
     --text-1: #eceef4;
     --text-2: #adb3c2;
     --text-3: #858d9f;

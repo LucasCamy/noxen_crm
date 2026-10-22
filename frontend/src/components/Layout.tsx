@@ -23,7 +23,7 @@ import {
 } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { useTheme, type ThemeChoice } from '../lib/theme'
-import { Avatar, IconButton, Skeleton } from './ui'
+import { Avatar, ICON, IconButton, Skeleton } from './ui'
 import { CommandPalette, type Command } from './CommandPalette'
 
 /** Esqueleto mostrado enquanto o código de uma rota é baixado; mantém título e conteúdo no lugar para não haver salto de layout. */
@@ -31,7 +31,7 @@ function RouteFallback() {
   return (
     <div role="status" aria-live="polite" aria-label="Carregando página">
       <div className="page-header" aria-hidden>
-        <div style={{ display: 'grid', gap: 8 }}>
+        <div className="page-header-text">
           <Skeleton h={28} w={180} r={8} />
           <Skeleton h={14} w={280} />
         </div>
@@ -165,7 +165,7 @@ export function Layout() {
         </Link>
 
         <button type="button" className="cmd-trigger" onClick={() => setPaletteOpen(true)} aria-label="Abrir busca e comandos">
-          <MagnifyingGlass size={16} aria-hidden />
+          <MagnifyingGlass size={ICON.control} aria-hidden />
           <span>Buscar…</span>
           <kbd>{isMac ? '⌘ K' : 'Ctrl K'}</kbd>
         </button>
@@ -178,7 +178,7 @@ export function Layout() {
               </span>
               {g.items.map(({ to, label, icon: IconComponent, end }) => (
                 <NavLink key={to} to={to} end={end} className="nav-item" title={label}>
-                  <IconComponent size={18} aria-hidden />
+                  <IconComponent size={ICON.chrome} aria-hidden />
                   <span className="nav-text">{label}</span>
                 </NavLink>
               ))}
@@ -194,10 +194,10 @@ export function Layout() {
               <span>{user.roles.join(', ')}</span>
             </div>
             <IconButton label={theme.label} onClick={() => setChoice(theme.next)}>
-              <ThemeIcon size={18} />
+              <ThemeIcon size={ICON.chrome} />
             </IconButton>
             <IconButton label="Sair" onClick={() => void signOut()}>
-              <SignOut size={18} />
+              <SignOut size={ICON.chrome} />
             </IconButton>
           </div>
         </div>

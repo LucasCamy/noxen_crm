@@ -1,12 +1,26 @@
 import type { ReactNode } from 'react'
 import { Tray, WarningCircle, type Icon } from '@phosphor-icons/react'
-import { initials } from '../../lib/format'
+import { EMPTY, dateBR, formatDate, initials, type DateMode } from '../../lib/format'
 import type { Tone } from '../../lib/domain'
 import { Button } from './Button'
+import { ICON } from './icons'
 import { Skeleton } from './Skeleton'
 
 export function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
   return <span className={`badge badge-${tone}`}>{children}</span>
+}
+
+/**
+ * Data em qualquer lugar da interface. Escolha o `mode` (date, short, month, datetime, relative, due);
+ * valor ausente vira "—". Modos que abreviam mostram a data completa ao passar o mouse.
+ */
+export function DateValue({ value, mode = 'date' }: { value: string | null | undefined; mode?: DateMode }) {
+  if (!value) return <>{EMPTY}</>
+  return (
+    <time dateTime={value} title={mode === 'date' || mode === 'datetime' ? undefined : dateBR(value)}>
+      {formatDate(value, mode)}
+    </time>
+  )
 }
 
 export function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
@@ -32,7 +46,7 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
 export function ErrorNote({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className="error-note" role="alert">
-      <WarningCircle size={18} aria-hidden />
+      <WarningCircle size={ICON.chrome} aria-hidden />
       <span>{message}</span>
       {onRetry && (
         <Button size="sm" onClick={onRetry}>
@@ -48,7 +62,7 @@ export function EmptyState({ icon: IconComponent = Tray, title, children, action
   return (
     <div className="empty">
       <span className="empty-icon" aria-hidden>
-        <IconComponent size={22} />
+        <IconComponent size={ICON.feature} />
       </span>
       <strong>{title}</strong>
       {children && <p>{children}</p>}

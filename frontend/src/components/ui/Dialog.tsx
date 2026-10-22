@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { X } from '@phosphor-icons/react'
 import { cn } from '../../lib/cn'
 import { IconButton } from './Button'
+import { ICON } from './icons'
 
 interface DialogProps {
   open: boolean
@@ -63,7 +64,7 @@ export function Dialog({ open, onClose, title, description, wide, children }: Di
               {description && <p>{description}</p>}
             </div>
             <IconButton label="Fechar" onClick={onClose}>
-              <X size={18} />
+              <X size={ICON.chrome} />
             </IconButton>
           </header>
           {frozen.current}

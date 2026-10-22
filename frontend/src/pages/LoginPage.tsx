@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError } from '../lib/api'
 import { Check } from '@phosphor-icons/react'
-import { Button, ErrorNote, TextField } from '../components/ui'
+import { Button, ErrorNote, ICON, TextField } from '../components/ui'
 
 export function LoginPage() {
   const { status, signIn } = useAuth()
@@ -44,15 +44,15 @@ export function LoginPage() {
           <h2>Mais clientes, mais faturamento.</h2>
           <ul className="login-points">
             <li>
-              <Check size={16} weight="bold" aria-hidden />
+              <Check size={ICON.control} weight="bold" aria-hidden />
               <span>Funil de prospecção e follow-ups sem esquecer ninguém.</span>
             </li>
             <li>
-              <Check size={16} weight="bold" aria-hidden />
+              <Check size={ICON.control} weight="bold" aria-hidden />
               <span>Carteira, mensalidades e MRR em tempo real.</span>
             </li>
             <li>
-              <Check size={16} weight="bold" aria-hidden />
+              <Check size={ICON.control} weight="bold" aria-hidden />
               <span>Agenda, conteúdos e metas da equipe no mesmo lugar.</span>
             </li>
           </ul>

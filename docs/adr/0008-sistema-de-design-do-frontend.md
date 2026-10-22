@@ -21,6 +21,17 @@ A primeira versão do frontend funcionava, mas era visualmente básica: um únic
 - **Desempenho**: telas carregadas sob demanda por rota (`React.lazy`) com skeleton como fallback; bundle inicial de ~379 kB (115 kB gzip).
 - **Acessibilidade**: link "pular para o conteúdo", foco movido ao conteúdo na troca de rota, rótulos em todos os controles, foco visível, alvos de toque confortáveis.
 
+## Padrões de composição (adendo de 2026-10-22)
+
+Uma revisão de consistência mostrou que, embora o cabeçalho fosse um componente só, as telas montavam filtros, botões de criar, datas, cartões e espaçamentos cada uma do seu jeito (botão principal em três posições, três estilos de filtro, sete contêineres de cartão com paddings diferentes, datas fatiadas à mão, carregamento por texto em algumas áreas). Decisões:
+
+- **Ordem fixa na página**: cabeçalho (título, descrição, ação principal à direita), abas, `FilterBar`, conteúdo. Filtros nunca no cabeçalho; criação nunca na barra de filtros.
+- **Componentes únicos**: `CreateButton`, `FilterBar`/`FilterSelect`/`FilterInput`/`FilterCheck`, `Card` (+ `SectionTitle`, `ItemTitle`), `DateValue` e `formatDate` (seis modos), `ICON`.
+- **Datas**: um único módulo; datas relativas até 7 dias ("hoje", "em 3 dias", "venceu há 2 dias") e data completa além disso; "—" para ausente; colunas de data em `td.num`.
+- **Tokens**: escala de espaçamento, raios e fontes aplicadas em todo o CSS (valores fora da escala foram arredondados para o degrau mais próximo); cores do botão de perigo viraram tokens.
+- **Carregamento**: nenhum "Carregando…" em texto puro; sempre esqueleto ou `Loading`.
+- **Trava**: `src/lib/consistency.test.ts` lê o código-fonte e falha se alguém voltar a usar `Plus` à mão, tamanho de ícone numérico, fatiar data, classes antigas de filtro/cartão, `style` inline estático, ou cor, espaçamento, raio e fonte soltos no CSS.
+
 ## Alternativas consideradas
 
 - Biblioteca de componentes pronta (shadcn/Radix, Fluent, Carbon): descartada por ora; o produto é pequeno, o CSS próprio com tokens é suficiente e evita dependência pesada. Reavaliar se o número de componentes crescer.
@@ -35,4 +46,4 @@ A primeira versão do frontend funcionava, mas era visualmente básica: um únic
 
 ## Verificação
 
-`tsc -b`, `oxlint` (só avisos conhecidos), 27 testes do frontend e build passando; contêiner `web` reconstruído e conferido no navegador integrado em tema claro e escuro, na paleta de comandos e em largura de celular. A captura de tela do painel integrado é instável; boa parte da conferência foi por inspeção do DOM e dos estilos computados.
+`tsc -b`, `oxlint` (só avisos conhecidos), 36 testes do frontend (inclui a trava de consistência) e build passando; contêiner `web` reconstruído e conferido no navegador integrado: as 11 telas principais têm cabeçalho na mesma posição, uma ação principal, barra de filtros do mesmo componente, cartões com o mesmo padding e ícones na escala; tema claro e escuro, paleta de comandos e largura de celular conferidos na primeira rodada. A captura de tela do painel integrado é instável; boa parte da conferência foi por inspeção do DOM e dos estilos computados.

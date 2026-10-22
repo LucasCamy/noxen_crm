@@ -1,11 +1,10 @@
 import { useState, type FormEvent } from 'react'
-import { Plus } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../lib/api'
 import { useCrmMutation } from '../lib/mutations'
 import { useUserList } from '../lib/queries'
 import type { Role, UserSummary } from '../lib/types'
-import { Badge, Button, Dialog, ErrorNote, PageHeader, SelectField, TableSkeleton, TextField } from '../components/ui'
+import { Badge, Button, CreateButton, Dialog, ErrorNote, PageHeader, SelectField, TableSkeleton, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, useForm } from '../components/common'
 
 const ROLE_HELP: Record<Role, string> = {
@@ -33,11 +32,7 @@ export function UsersPage() {
       <PageHeader
         title="Usuários"
         subtitle="Quem acessa o CRM e com qual papel"
-        actions={
-          <Button type="button" variant="primary" onClick={() => setCreating(true)}>
-            <Plus size={18} aria-hidden /> Novo usuário
-          </Button>
-        }
+        actions={<CreateButton onClick={() => setCreating(true)}>Novo usuário</CreateButton>}
       />
       {isPending ? (
         <TableSkeleton rows={4} cols={5} label="Carregando usuários" />

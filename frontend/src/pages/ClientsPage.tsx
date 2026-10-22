@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Buildings, CaretLeft, CaretRight, Plus } from '@phosphor-icons/react'
+import { Buildings, CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { CLIENT_STATUSES, clientStatusInfo } from '../lib/domain'
-import { brl, dateTimeBR } from '../lib/format'
+import { brl } from '../lib/format'
 import { useClients, useUsers } from '../lib/queries'
 import { useDebounced } from '../lib/useDebounced'
 import type { ClientStatus } from '../lib/types'
-import { Badge, Button, Dialog, EmptyState, ErrorNote, PageHeader, SearchInput, Segmented, TableSkeleton } from '../components/ui'
+import { Badge, Button, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, ICON, PageHeader, SearchInput, Segmented, TableSkeleton } from '../components/ui'
 import { ClientForm } from '../components/ClientForm'
 
 const PAGE_SIZE = 20
@@ -42,16 +42,10 @@ export function ClientsPage() {
       <PageHeader
         title="Clientes"
         subtitle={data ? `${data.total} ${data.total === 1 ? 'cliente' : 'clientes'}${filtered ? ' no filtro' : ' na carteira'}` : 'Carteira de clientes'}
-        actions={
-          canWrite && (
-            <Button variant="primary" onClick={() => setCreating(true)}>
-              <Plus size={16} aria-hidden /> Novo cliente
-            </Button>
-          )
-        }
+        actions={canWrite && <CreateButton onClick={() => setCreating(true)}>Novo cliente</CreateButton>}
       />
 
-      <div className="toolbar">
+      <FilterBar>
         <SearchInput
           label="Buscar clientes"
           placeholder="Buscar por nome ou razão social"
@@ -70,7 +64,7 @@ export function ClientsPage() {
           }}
           options={[{ key: '' as const, label: 'Todos' }, ...CLIENT_STATUSES.map((s) => ({ key: s.key, label: s.label }))]}
         />
-      </div>
+      </FilterBar>
 
       {isPending ? (
         <TableSkeleton rows={7} cols={6} label="Carregando clientes" />
@@ -91,9 +85,7 @@ export function ClientsPage() {
                 Limpar filtros
               </Button>
             ) : canWrite ? (
-              <Button variant="primary" onClick={() => setCreating(true)}>
-                <Plus size={16} aria-hidden /> Cadastrar cliente
-              </Button>
+              <CreateButton onClick={() => setCreating(true)}>Novo cliente</CreateButton>
             ) : undefined
           }
         >
@@ -101,7 +93,7 @@ export function ClientsPage() {
         </EmptyState>
       ) : (
         data && (
-          <div className="table-wrap" style={{ opacity: isFetching ? 0.72 : 1, transition: 'opacity var(--dur-base) var(--ease-out)' }} aria-busy={isFetching}>
+          <div className={`table-wrap${isFetching ? ' is-refreshing' : ''}`} aria-busy={isFetching}>
             <table className="table">
               <caption className="sr-only">Clientes da carteira</caption>
               <thead>
@@ -141,7 +133,9 @@ export function ClientsPage() {
                       </td>
                       <td className="num">{brl(c.monthlyFee)}</td>
                       <td className="num">dia {c.dueDay}</td>
-                      <td className="num">{dateTimeBR(c.nextMeeting)}</td>
+                      <td className="num">
+                        <DateValue value={c.nextMeeting} mode="datetime" />
+                      </td>
                       <td>{userName(c.responsibleId)}</td>
                     </tr>
                   )
@@ -151,13 +145,13 @@ export function ClientsPage() {
             {pages > 1 && (
               <nav className="pager" aria-label="Paginação">
                 <Button size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                  <CaretLeft size={14} aria-hidden /> Anterior
+                  <CaretLeft size={ICON.control} aria-hidden /> Anterior
                 </Button>
                 <span className="muted small">
                   Página {page} de {pages}
                 </span>
                 <Button size="sm" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
-                  Próxima <CaretRight size={14} aria-hidden />
+                  Próxima <CaretRight size={ICON.control} aria-hidden />
                 </Button>
               </nav>
             )}

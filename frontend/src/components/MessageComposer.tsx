@@ -6,7 +6,7 @@ import { firstName, renderScript, whatsappUrlWithText } from '../lib/format'
 import { useScripts } from '../lib/queries'
 import type { Lead } from '../lib/types'
 import { useToast } from './Toast'
-import { Button, ButtonLink } from './ui'
+import { Button, ButtonLink, ICON, SectionTitle } from './ui'
 
 /** Monta a mensagem de abordagem do lead a partir de um script, com os placeholders preenchidos e editável antes de enviar. */
 export function MessageComposer({ lead }: { lead: Lead }) {
@@ -40,7 +40,7 @@ export function MessageComposer({ lead }: { lead: Lead }) {
 
   return (
     <section className="composer" aria-label="Mensagem de abordagem">
-      <h3>Mensagem de abordagem</h3>
+      <SectionTitle as="h3">Mensagem de abordagem</SectionTitle>
       <label className="field">
         <span className="label-text">Modelo</span>
         <select
@@ -72,11 +72,11 @@ export function MessageComposer({ lead }: { lead: Lead }) {
           </label>
           <div className="composer-actions">
             <Button type="button" size="sm" onClick={() => void copy()}>
-              <Copy size={16} aria-hidden /> Copiar
+              <Copy size={ICON.control} aria-hidden /> Copiar
             </Button>
             {wa ? (
               <ButtonLink variant="primary" size="sm" href={wa} target="_blank" rel="noreferrer">
-                <WhatsappLogo size={16} aria-hidden /> Abrir no WhatsApp
+                <WhatsappLogo size={ICON.control} aria-hidden /> Abrir no WhatsApp
               </ButtonLink>
             ) : (
               <span className="muted small">Cadastre o WhatsApp do lead para abrir a conversa.</span>

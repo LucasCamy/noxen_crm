@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../lib/api'
-import { brl, dateBR, parseMoney, todayISO } from '../lib/format'
+import { brl, formatDate, parseMoney, todayISO } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useClients } from '../lib/queries'
 import type { LedgerEntry, LedgerInput, LedgerKind, Payment, PaymentInput, PaymentKind } from '../lib/types'
-import { Badge, Dialog, ErrorNote, SelectField, TextField, Button } from './ui'
+import { Badge, Button, DateValue, Dialog, ErrorNote, SelectField, TextField } from './ui'
 import { ConfirmDialog, FormFooter, blankToNull, useForm } from './common'
 import type { Tone } from '../lib/domain'
 
@@ -57,14 +57,14 @@ export function PaymentsTable({ payments, showClient, canManage }: { payments: P
                 <tr key={p.id}>
                   {showClient && <th scope="row">{p.clientName}</th>}
                   <td>
-                    {KIND_LABEL[p.kind]} · {dateBR(p.referenceMonth).slice(3)}
+                    {KIND_LABEL[p.kind]} · {formatDate(p.referenceMonth, 'month')}
                     {p.description && <span className="muted small block">{p.description}</span>}
                   </td>
-                  <td>{dateBR(p.dueDate)}</td>
+                  <td className="num"><DateValue value={p.dueDate} /></td>
                   <td className="num">{brl(p.amount)}</td>
                   <td>
                     <Badge tone={b.tone}>{b.label}</Badge>
-                    {p.paidOn && <span className="muted small block">em {dateBR(p.paidOn)}</span>}
+                    {p.paidOn && <span className="muted small block">em <DateValue value={p.paidOn} /></span>}
                   </td>
                   {canManage && (
                     <td className="row-actions">
@@ -90,7 +90,7 @@ export function PaymentsTable({ payments, showClient, canManage }: { payments: P
       <ConfirmDialog
         open={!!cancelling}
         title="Cancelar cobrança?"
-        description={cancelling ? `${cancelling.clientName} · ${brl(cancelling.amount)} · vence em ${dateBR(cancelling.dueDate)}` : undefined}
+        description={cancelling ? `${cancelling.clientName} · ${brl(cancelling.amount)} · vence em ${formatDate(cancelling.dueDate)}` : undefined}
         confirmLabel="Cancelar cobrança"
         danger
         busy={cancel.isPending}
@@ -244,7 +244,7 @@ export function LedgerTable({ entries, canManage }: { entries: LedgerEntry[]; ca
               const label = e.status === 'Cancelado' ? 'Cancelado' : realizado ? (e.kind === 'Receita' ? 'Recebido' : 'Pago') : e.overdue ? 'Atrasado' : 'Previsto'
               return (
                 <tr key={e.id}>
-                  <td>{dateBR(e.date)}</td>
+                  <td className="num"><DateValue value={e.date} /></td>
                   <th scope="row">
                     {e.description}
                     <span className="muted small block">{[e.category, e.clientName].filter(Boolean).join(' · ')}</span>
@@ -256,7 +256,7 @@ export function LedgerTable({ entries, canManage }: { entries: LedgerEntry[]; ca
                   </td>
                   <td>
                     <Badge tone={tone}>{label}</Badge>
-                    {e.settledOn && <span className="muted small block">em {dateBR(e.settledOn)}</span>}
+                    {e.settledOn && <span className="muted small block">em <DateValue value={e.settledOn} /></span>}
                   </td>
                   {canManage && (
                     <td className="row-actions">

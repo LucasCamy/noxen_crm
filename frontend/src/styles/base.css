@@ -93,7 +93,7 @@ a {
   top: 8px;
   left: 8px;
   z-index: var(--z-progress);
-  padding: 8px 14px;
+  padding: var(--space-8) var(--space-12);
   border-radius: var(--r-md);
   background: var(--bg-inverse);
   color: var(--text-inverse);

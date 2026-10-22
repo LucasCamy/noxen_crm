@@ -3,10 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WhatsappLogo } from '@phosphor-icons/react'
 import { api, ApiError } from '../lib/api'
 import { BRAZILIAN_STATES, SOURCES, STAGES, moveError, stageInfo } from '../lib/domain'
-import { brl, dateTimeBR, parseMoney, whatsappUrl } from '../lib/format'
+import { brl, formatDate, parseMoney, whatsappUrl } from '../lib/format'
 import { useLeadHistory } from '../lib/queries'
 import type { Client, Lead, LeadInput, LeadSource, LeadStage, UserLookup } from '../lib/types'
-import { Badge, Dialog, ErrorNote, SelectField, TextAreaField, TextField, Button, ButtonLink } from './ui'
+import { Badge, Button, ButtonLink, Dialog, ErrorNote, ICON, Loading, SectionTitle, SelectField, TextAreaField, TextField } from './ui'
 import { useToast } from './Toast'
 import { MessageComposer } from './MessageComposer'
 import { ConfirmDialog } from './common'
@@ -161,7 +161,7 @@ function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: Lea
           {lead.estimatedValue != null && <span className="muted">Valor estimado {brl(lead.estimatedValue)}</span>}
           {wa && (
             <ButtonLink size="sm" href={wa} target="_blank" rel="noreferrer">
-              <WhatsappLogo size={16} aria-hidden /> WhatsApp
+              <WhatsappLogo size={ICON.control} aria-hidden /> WhatsApp
             </ButtonLink>
           )}
         </div>
@@ -209,9 +209,9 @@ function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: Lea
 
       {lead && (
         <section className="history" aria-label="Histórico de etapas">
-          <h3>Histórico</h3>
+          <SectionTitle as="h3">Histórico</SectionTitle>
           {history.isPending ? (
-            <p className="muted small">Carregando…</p>
+            <Loading label="Carregando histórico" />
           ) : history.data && history.data.length > 0 ? (
             <ol>
               {history.data.map((h, i) => (
@@ -220,13 +220,13 @@ function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: Lea
                     {stageInfo(h.from).label} → <strong>{stageInfo(h.to).label}</strong>
                   </span>
                   <span className="muted small">
-                    {dateTimeBR(h.changedAt)} · {userName(h.changedById)}
+                    {formatDate(h.changedAt, "datetime")} · {userName(h.changedById)}
                   </span>
                 </li>
               ))}
             </ol>
           ) : (
-            <p className="muted small">Ainda sem movimentações. Criado em {dateTimeBR(lead.createdAt)}.</p>
+            <p className="muted small">Ainda sem movimentações. Criado em {formatDate(lead.createdAt, "datetime")}.</p>
           )}
         </section>
       )}

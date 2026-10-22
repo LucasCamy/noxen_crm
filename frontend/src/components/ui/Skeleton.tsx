@@ -53,7 +53,7 @@ export function ListSkeleton({ rows = 5, label = 'Carregando lista' }: { rows?: 
   return (
     <div className="task-list" role="status" aria-live="polite" aria-label={label}>
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="task" aria-hidden style={{ gridTemplateColumns: 'minmax(0,1fr) auto' }}>
+        <div key={i} className="task task-skeleton" aria-hidden>
           <div className="skeleton-stack">
             <Skeleton h={13} w={`${46 + ((i * 17) % 36)}%`} />
             <Skeleton h={11} w={`${24 + ((i * 11) % 24)}%`} />
@@ -76,7 +76,7 @@ export function BoardSkeleton({ columns = 5 }: { columns?: number }) {
           </div>
           <div className="column-body">
             {Array.from({ length: 3 - (c % 2) }, (_, i) => (
-              <div key={i} className="lead-card">
+              <div key={i} className="card card-sm lead-card">
                 <Skeleton h={14} w="70%" />
                 <Skeleton h={11} w="50%" />
                 <Skeleton h={11} w="40%" />
@@ -93,7 +93,7 @@ export function CardGridSkeleton({ cards = 6 }: { cards?: number }) {
   return (
     <div className="idea-grid" role="status" aria-live="polite" aria-label="Carregando">
       {Array.from({ length: cards }, (_, i) => (
-        <div key={i} className="idea" aria-hidden>
+        <div key={i} className="card" aria-hidden>
           <Skeleton h={14} w="60%" />
           <Skeleton h={11} w="35%" />
           <Skeleton h={11} w="90%" />

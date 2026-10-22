@@ -5,12 +5,13 @@ import { ArrowLeft, WhatsappLogo } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api, ApiError } from '../lib/api'
 import { CLIENT_STATUSES, clientStatusInfo } from '../lib/domain'
-import { brl, dateBR, whatsappUrl } from '../lib/format'
+import { EMPTY, brl, whatsappUrl } from '../lib/format'
 import { useClient, useUsers } from '../lib/queries'
 import type { Client, ClientStatus } from '../lib/types'
-import { Badge, Button, ButtonLink, Dialog, ErrorNote, PageHeader, Skeleton } from '../components/ui'
+import { Badge, ButtonLink, Card, DateValue, ErrorNote, ICON, PageHeader, Skeleton } from '../components/ui'
 import { ClientForm } from '../components/ClientForm'
 import { ClientPanels } from '../components/ClientPanels'
+import { ConfirmDialog } from '../components/common'
 import { useToast } from '../components/Toast'
 
 export function ClientDetailPage() {
@@ -43,16 +44,16 @@ export function ClientDetailPage() {
     return (
       <div role="status" aria-live="polite" aria-label="Carregando cliente">
         <Skeleton h={14} w={80} />
-        <div style={{ margin: '14px 0 24px' }}>
+        <div className="page-header" aria-hidden>
           <Skeleton h={28} w={280} r={6} />
         </div>
         <div className="detail-grid" aria-hidden>
-          <div className="panel skeleton-stack">
+          <div className="card skeleton-stack">
             {Array.from({ length: 8 }, (_, i) => (
               <Skeleton key={i} h={36} r={8} />
             ))}
           </div>
-          <div className="panel skeleton-stack">
+          <div className="card skeleton-stack">
             {Array.from({ length: 6 }, (_, i) => (
               <Skeleton key={i} h={16} w={`${60 + ((i * 9) % 35)}%`} />
             ))}
@@ -65,7 +66,7 @@ export function ClientDetailPage() {
     return (
       <>
         <Link to="/clients" className="back-link">
-          <ArrowLeft size={16} aria-hidden /> Clientes
+          <ArrowLeft size={ICON.control} aria-hidden /> Clientes
         </Link>
         <ErrorNote message={notFound ? 'Cliente não encontrado.' : 'Não foi possível carregar o cliente.'} onRetry={notFound ? undefined : () => void refetch()} />
       </>
@@ -86,7 +87,7 @@ export function ClientDetailPage() {
   return (
     <>
       <Link to="/clients" className="back-link">
-        <ArrowLeft size={16} aria-hidden /> Clientes
+        <ArrowLeft size={ICON.control} aria-hidden /> Clientes
       </Link>
       <PageHeader
         title={client.name}
@@ -95,14 +96,12 @@ export function ClientDetailPage() {
       />
 
       <div className="detail-grid">
-        <section className="panel">
-          <h2>Dados e contrato</h2>
+        <Card title="Dados e contrato">
           <ClientForm key={client.version} client={client} users={users} currentUserId={user?.id ?? ''} canWrite={canWrite} onSaved={() => undefined} />
-        </section>
+        </Card>
 
         <aside className="detail-side">
-          <section className="panel">
-            <h2>Situação</h2>
+          <Card title="Situação">
             <label className="field">
               <span className="label-text">Status do cliente</span>
               <select value={client.status} disabled={!canWrite || closed || changeStatus.isPending} onChange={(e) => requestStatus(e.target.value as ClientStatus)}>
@@ -129,11 +128,13 @@ export function ClientDetailPage() {
               </div>
               <div>
                 <dt>Cliente desde</dt>
-                <dd>{dateBR(client.clientSince)}</dd>
+                <dd>
+                  <DateValue value={client.clientSince} />
+                </dd>
               </div>
               <div>
                 <dt>Responsável</dt>
-                <dd>{responsible ?? '—'}</dd>
+                <dd>{responsible ?? EMPTY}</dd>
               </div>
               <div>
                 <dt>Origem</dt>
@@ -142,35 +143,27 @@ export function ClientDetailPage() {
             </dl>
             {wa && (
               <ButtonLink block href={wa} target="_blank" rel="noreferrer">
-                <WhatsappLogo size={16} aria-hidden /> Falar no WhatsApp
+                <WhatsappLogo size={ICON.control} aria-hidden /> Falar no WhatsApp
               </ButtonLink>
             )}
-          </section>
+          </Card>
         </aside>
       </div>
 
       <ClientPanels clientId={client.id} canFinance={canFinance} />
 
-      <Dialog open={confirmClose} onClose={() => setConfirmClose(false)} title="Encerrar cliente?" description={`${client.name} deixa de contar no MRR e não poderá ser reativado.`}>
-        <div className="dialog-form">
-          <footer className="dialog-footer">
-            <span className="spacer" />
-            <Button type="button" onClick={() => setConfirmClose(false)}>
-              Cancelar
-            </Button>
-            <Button
- type="button"
- variant="danger"
- onClick={() => {
- setConfirmClose(false)
- changeStatus.mutate({ target: 'Encerrado', version: client.version })
- }}
->
-              Encerrar cliente
-            </Button>
-          </footer>
-        </div>
-      </Dialog>
+      <ConfirmDialog
+        open={confirmClose}
+        title="Encerrar cliente?"
+        description={`${client.name} deixa de contar no MRR e não poderá ser reativado.`}
+        confirmLabel="Encerrar cliente"
+        danger
+        onConfirm={() => {
+          setConfirmClose(false)
+          changeStatus.mutate({ target: 'Encerrado', version: client.version })
+        }}
+        onClose={() => setConfirmClose(false)}
+      />
     </>
   )
 }

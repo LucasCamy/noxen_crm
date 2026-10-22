@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { MagicWand, Plus, Wallet } from '@phosphor-icons/react'
+import { MagicWand, Wallet } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../lib/api'
 import { brl, todayISO } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useFinanceSummary, useLedger, usePayments } from '../lib/queries'
-import { Button, EmptyState, ErrorNote, PageHeader, StatStripSkeleton, TableSkeleton } from '../components/ui'
+import { Button, CreateButton, EmptyState, ErrorNote, FilterBar, FilterInput, ICON, PageHeader, StatStripSkeleton, TableSkeleton } from '../components/ui'
 import { Tabs } from '../components/common'
 import { LedgerFormDialog, LedgerTable, PaymentFormDialog, PaymentsTable } from '../components/FinanceParts'
 
@@ -47,21 +47,19 @@ export function FinancePage() {
         subtitle="Caixa do mês: cobranças dos clientes e lançamentos da agência"
         actions={
           <>
-            <label className="field-inline">
-              <span className="sr-only">Mês</span>
-              <input type="month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} aria-label="Mês" />
-            </label>
             {isAdmin && (
-              <Button type="button" disabled={generate.isPending} onClick={() => generate.mutate(undefined)}>
-                <MagicWand size={18} aria-hidden /> Gerar mensalidades
+              <Button loading={generate.isPending} onClick={() => generate.mutate(undefined)}>
+                <MagicWand size={ICON.control} aria-hidden /> Gerar mensalidades
               </Button>
             )}
-            <Button type="button" variant="primary" onClick={() => (tab === 'payments' ? setNewPayment(true) : setNewEntry(true))}>
-              <Plus size={18} aria-hidden /> {tab === 'payments' ? 'Nova cobrança' : 'Novo lançamento'}
-            </Button>
+            <CreateButton onClick={() => (tab === 'payments' ? setNewPayment(true) : setNewEntry(true))}>{tab === 'payments' ? 'Nova cobrança' : 'Novo lançamento'}</CreateButton>
           </>
         }
       />
+
+      <FilterBar>
+        <FilterInput label="Mês" type="month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} />
+      </FilterBar>
 
       {summary.isError ? (
         <ErrorNote message="Não foi possível carregar o resumo." onRetry={() => void summary.refetch()} />
@@ -96,11 +94,7 @@ export function FinancePage() {
           <EmptyState
             icon={Wallet}
             title="Nenhuma cobrança vence neste mês"
-            action={
-              <Button variant="primary" onClick={() => setNewPayment(true)}>
-                <Plus size={16} aria-hidden /> Nova cobrança
-              </Button>
-            }
+            action={<CreateButton onClick={() => setNewPayment(true)}>Nova cobrança</CreateButton>}
           >
             As mensalidades dos clientes ativos são geradas todo mês. Você também pode criar uma cobrança avulsa.
           </EmptyState>
@@ -115,11 +109,7 @@ export function FinancePage() {
         <EmptyState
           icon={Wallet}
           title="Nenhum lançamento neste mês"
-          action={
-            <Button variant="primary" onClick={() => setNewEntry(true)}>
-              <Plus size={16} aria-hidden /> Novo lançamento
-            </Button>
-          }
+          action={<CreateButton onClick={() => setNewEntry(true)}>Novo lançamento</CreateButton>}
         >
           Registre receitas avulsas e despesas da agência.
         </EmptyState>

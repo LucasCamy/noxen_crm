@@ -1,6 +1,6 @@
 import { useId, useState } from 'react'
 import { PencilSimple, Trash } from '@phosphor-icons/react'
-import { Button, Dialog, ErrorNote, IconButton } from './ui'
+import { Button, Dialog, ErrorNote, ICON, IconButton } from './ui'
 
 /** Abas simples e acessíveis (role=tablist). O conteúdo ativo é renderizado pelo chamador. */
 export function Tabs<T extends string>({
@@ -79,11 +79,11 @@ export function RowActions({ onEdit, onDelete, label }: { onEdit: () => void; on
   return (
     <span className="row-actions">
       <IconButton label={`Editar ${label}`} onClick={onEdit}>
-        <PencilSimple size={16} />
+        <PencilSimple size={ICON.control} aria-hidden />
       </IconButton>
       {onDelete && (
         <IconButton label={`Excluir ${label}`} onClick={onDelete}>
-          <Trash size={16} />
+          <Trash size={ICON.control} aria-hidden />
         </IconButton>
       )}
     </span>

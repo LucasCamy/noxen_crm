@@ -13,15 +13,15 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
-import { CalendarDots, Clock, Plus } from '@phosphor-icons/react'
+import { CalendarDots, Clock } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../lib/api'
 import { STAGES, moveError, stageInfo } from '../lib/domain'
-import { brl, dateBR, isOverdue } from '../lib/format'
+import { brl, dateShort, isOverdue } from '../lib/format'
 import { fetchLeads, leadsKey, useUsers } from '../lib/queries'
 import { useDebounced } from '../lib/useDebounced'
 import type { Lead, LeadStage, UserLookup } from '../lib/types'
-import { Avatar, BoardSkeleton, Button, ErrorNote, PageHeader, SearchInput } from '../components/ui'
+import { Avatar, BoardSkeleton, CreateButton, ErrorNote, FilterBar, FilterCheck, ICON, PageHeader, SearchInput, Skeleton } from '../components/ui'
 import { useToast } from '../components/Toast'
 import { ConvertDialog, LeadDialog, LostDialog } from '../components/LeadDialogs'
 
@@ -32,7 +32,7 @@ function LeadCardView({ lead, owner, overlay }: { lead: Lead; owner?: UserLookup
   const overdue = open && isOverdue(lead.nextStepDate)
   const place = [lead.segment, [lead.city, lead.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ')
   return (
-    <div className={`lead-card${overlay ? ' lead-card-overlay' : ''}`}>
+    <div className={`card card-sm lead-card${overlay ? ' lead-card-overlay' : ''}`}>
       <strong className="lead-company">{lead.company}</strong>
       {place && <span className="lead-meta">{place}</span>}
       {lead.estimatedValue != null && (
@@ -43,10 +43,10 @@ function LeadCardView({ lead, owner, overlay }: { lead: Lead; owner?: UserLookup
       <div className="lead-foot">
         {lead.nextStepDate || lead.nextStep ? (
           <span className={`lead-next${overdue ? ' overdue' : ''}`}>
-            {overdue ? <Clock size={14} aria-hidden /> : <CalendarDots size={14} aria-hidden />}
+            {overdue ? <Clock size={ICON.meta} aria-hidden /> : <CalendarDots size={ICON.meta} aria-hidden />}
             <span>
               {lead.nextStep ?? 'Próximo passo'}
-              {lead.nextStepDate ? ` · ${dateBR(lead.nextStepDate).slice(0, 5)}` : ''}
+              {lead.nextStepDate ? ` · ${dateShort(lead.nextStepDate)}` : ''}
               {overdue && <span className="sr-only"> (atrasado)</span>}
             </span>
           </span>
@@ -106,7 +106,10 @@ function Column({ stage, leads, total, loading, failed, retry, users, canDrag, o
         {failed ? (
           <ErrorNote message="Falha ao carregar." onRetry={retry} />
         ) : loading ? (
-          <p className="muted small">Carregando…</p>
+          <div className="skeleton-stack" role="status" aria-label={`Carregando ${stage.label}`}>
+            <Skeleton h={64} r={8} />
+            <Skeleton h={64} r={8} />
+          </div>
         ) : leads.length === 0 ? (
           <p className="column-empty">{canDrag ? 'Solte um lead aqui' : 'Nenhum lead'}</p>
         ) : (
@@ -222,20 +225,13 @@ export function LeadsPage() {
       <PageHeader
         title="Leads"
         subtitle={`${totalLeads} ${totalLeads === 1 ? 'lead' : 'leads'} no funil de prospecção`}
-        actions={
-          <>
-            <SearchInput label="Buscar leads" placeholder="Buscar empresa, contato ou WhatsApp" value={searchText} onChange={(e) => setSearchText(e.target.value)} />
-            <label className="check">
-              <input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} /> Só meus leads
-            </label>
-            {canWrite && (
-              <Button type="button" variant="primary" onClick={() => setDialog({ lead: null })}>
-                <Plus size={18} aria-hidden /> Novo lead
-              </Button>
-            )}
-          </>
-        }
+        actions={canWrite && <CreateButton onClick={() => setDialog({ lead: null })}>Novo lead</CreateButton>}
       />
+
+      <FilterBar>
+        <SearchInput label="Buscar leads" placeholder="Buscar empresa, contato ou WhatsApp" value={searchText} onChange={(e) => setSearchText(e.target.value)} />
+        <FilterCheck label="Só meus leads" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} />
+      </FilterBar>
 
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragging(null)} accessibility={accessibility}>
         {allPending ? (

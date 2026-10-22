@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { FilmSlate, Plus } from '@phosphor-icons/react'
+import { FilmSlate } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { CHANNELS, CONTENT_FORMATS, CONTENT_STATUSES, contentFormatLabel, contentStatusInfo } from '../lib/domain'
-import { dateBR } from '../lib/format'
+import { EMPTY } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useContents } from '../lib/queries'
 import type { ContentFormat, ContentItem, ContentStatus } from '../lib/types'
-import { Badge, Button, Dialog, EmptyState, ErrorNote, PageHeader, SelectField, TableSkeleton, TextAreaField, TextField } from '../components/ui'
+import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterSelect, PageHeader, SelectField, TableSkeleton, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 
@@ -23,28 +23,24 @@ export function ContentsPage() {
       <PageHeader
         title="Conteúdos"
         subtitle="Posts, roteiros e anúncios, do rascunho à publicação"
-        actions={
-          <>
-            <select className="select-inline" aria-label="Filtrar por status" value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="">Todos os status</option>
-              {CONTENT_STATUSES.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-            <select className="select-inline" aria-label="Filtrar por canal" value={channel} onChange={(e) => setChannel(e.target.value)}>
-              <option value="">Todos os canais</option>
-              {CHANNELS.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-            <Button type="button" variant="primary" onClick={() => setEditing({ item: null })}>
-              <Plus size={18} aria-hidden /> Novo conteúdo
-            </Button>
-          </>
-        }
+        actions={<CreateButton onClick={() => setEditing({ item: null })}>Novo conteúdo</CreateButton>}
       />
+      <FilterBar>
+        <FilterSelect label="Filtrar por status" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="">Todos os status</option>
+          {CONTENT_STATUSES.map((s) => (
+            <option key={s.key} value={s.key}>
+              {s.label}
+            </option>
+          ))}
+        </FilterSelect>
+        <FilterSelect label="Filtrar por canal" value={channel} onChange={(e) => setChannel(e.target.value)}>
+          <option value="">Todos os canais</option>
+          {CHANNELS.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </FilterSelect>
+      </FilterBar>
       {isPending ? (
         <TableSkeleton rows={5} cols={6} label="Carregando conteúdos" />
       ) : isError ? (
@@ -54,11 +50,7 @@ export function ContentsPage() {
           icon={FilmSlate}
           title="Nenhum conteúdo encontrado"
           action={
-            status || channel ? undefined : (
-              <Button variant="primary" onClick={() => setEditing({ item: null })}>
-                <Plus size={16} aria-hidden /> Novo conteúdo
-              </Button>
-            )
+            status || channel ? undefined : <CreateButton onClick={() => setEditing({ item: null })}>Novo conteúdo</CreateButton>
           }
         >
           {status || channel ? 'Ajuste os filtros.' : 'Cadastre o primeiro post, roteiro ou anúncio.'}
@@ -71,7 +63,9 @@ export function ContentsPage() {
                 <th scope="col">Conteúdo</th>
                 <th scope="col">Cliente</th>
                 <th scope="col">Canal</th>
-                <th scope="col">Publicação</th>
+                <th scope="col" className="num">
+                  Publicação
+                </th>
                 <th scope="col">Status</th>
                 <th scope="col">
                   <span className="sr-only">Ações</span>
@@ -88,8 +82,10 @@ export function ContentsPage() {
                       <span className="muted small block">{[contentFormatLabel(c.format), c.objective].filter(Boolean).join(' · ')}</span>
                     </th>
                     <td>{c.clientName ?? 'Noxen'}</td>
-                    <td>{c.channel ?? '—'}</td>
-                    <td>{dateBR(c.publishDate)}</td>
+                    <td>{c.channel ?? EMPTY}</td>
+                    <td className="num">
+                      <DateValue value={c.publishDate} />
+                    </td>
                     <td>
                       <Badge tone={st.tone}>{st.label}</Badge>
                     </td>

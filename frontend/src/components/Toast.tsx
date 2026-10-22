@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
 import { CheckCircle, WarningCircle, X } from '@phosphor-icons/react'
-import { IconButton } from './ui'
+import { ICON, IconButton } from './ui'
 
 type Kind = 'success' | 'error'
 interface ToastItem {
@@ -38,10 +38,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div className="toasts" role="status" aria-live="polite">
         {items.map((t) => (
           <div key={t.id} className={`toast toast-${t.kind}${t.leaving ? ' leaving' : ''}`}>
-            {t.kind === 'error' ? <WarningCircle size={18} weight="fill" aria-hidden /> : <CheckCircle size={18} weight="fill" aria-hidden />}
+            {t.kind === 'error' ? <WarningCircle size={ICON.chrome} weight="fill" aria-hidden /> : <CheckCircle size={ICON.chrome} weight="fill" aria-hidden />}
             <span>{t.message}</span>
             <IconButton label="Fechar aviso" onClick={() => dismiss(t.id)}>
-              <X size={16} />
+              <X size={ICON.control} aria-hidden />
             </IconButton>
           </div>
         ))}

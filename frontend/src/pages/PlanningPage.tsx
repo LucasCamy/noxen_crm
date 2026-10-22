@@ -1,28 +1,25 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { CalendarBlank, ListChecks, Plus } from '@phosphor-icons/react'
+import { CalendarBlank, ListChecks } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../lib/api'
 import { PRIORITIES, TODO_STATUSES, priorityInfo, type Tone } from '../lib/domain'
-import { brl, dateBR, todayISO } from '../lib/format'
+import { addDaysISO, brl, dateBR, todayISO } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { usePlanning, useTasks, useUsers } from '../lib/queries'
 import type { PlanningItem, Priority, Task, TodoStatus } from '../lib/types'
-import { Badge, Button, Dialog, EmptyState, ErrorNote, ListSkeleton, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterCheck, FilterSelect, ListSkeleton, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, Tabs, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 
 type Tab = 'agenda' | 'tasks'
 
 const KIND_TONE: Record<string, Tone> = { Tarefa: 'brand', 'Follow-up': 'info', Reunião: 'teal', Vencimento: 'warning', Conteúdo: 'neutral' }
-const addDays = (iso: string, n: number) => {
-  const [y, m, d] = iso.split('-').map(Number)
-  return todayISO(new Date(y, m - 1, d + n))
-}
 
 export function PlanningPage() {
   const [tab, setTab] = useState<Tab>('agenda')
-  const [newTaskSignal, setNewTaskSignal] = useState(0)
+  const { user } = useAuth()
+  const [creating, setCreating] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -31,14 +28,20 @@ export function PlanningPage() {
   useEffect(() => {
     if (action === 'new-task') {
       setTab('tasks')
-      setNewTaskSignal((n) => n + 1)
+      setCreating(true)
       navigate(location.pathname, { replace: true, state: null })
     }
   }, [action, navigate, location.pathname])
 
   return (
     <>
-      <PageHeader title="Planejamento" subtitle="Agenda do que vence nos próximos dias e as tarefas da equipe" />
+      <PageHeader
+        title="Planejamento"
+        subtitle="Agenda do que vence nos próximos dias e as tarefas da equipe"
+        actions={
+          <CreateButton onClick={() => setCreating(true)}>Nova tarefa</CreateButton>
+        }
+      />
       <Tabs
         label="Seções do planejamento"
         value={tab}
@@ -48,7 +51,10 @@ export function PlanningPage() {
           { key: 'tasks', label: 'Tarefas' },
         ]}
       />
-      {tab === 'agenda' ? <Agenda /> : <Tasks newSignal={newTaskSignal} />}
+      {tab === 'agenda' ? <Agenda /> : <Tasks />}
+      <Dialog open={creating} onClose={() => setCreating(false)} wide title="Nova tarefa">
+        {creating && <TaskForm key="nova" task={null} defaultAssignee={user?.id ?? ''} onClose={() => setCreating(false)} />}
+      </Dialog>
     </>
   )
 }
@@ -56,7 +62,7 @@ export function PlanningPage() {
 function Agenda() {
   const today = todayISO()
   const [days, setDays] = useState(14)
-  const { data, isPending, isError, refetch } = usePlanning(today, addDays(today, days))
+  const { data, isPending, isError, refetch } = usePlanning(today, addDaysISO(today, days))
 
   const groups = useMemo(() => {
     const overdue = (data ?? []).filter((i) => i.overdue)
@@ -67,16 +73,13 @@ function Agenda() {
 
   return (
     <>
-      <div className="toolbar">
-        <label className="field-inline">
-          <span className="sr-only">Período</span>
-          <select className="select-inline" value={days} onChange={(e) => setDays(Number(e.target.value))} aria-label="Período">
-            <option value={7}>Próximos 7 dias</option>
-            <option value={14}>Próximos 14 dias</option>
-            <option value={30}>Próximos 30 dias</option>
-          </select>
-        </label>
-      </div>
+      <FilterBar>
+        <FilterSelect label="Período" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+          <option value={7}>Próximos 7 dias</option>
+          <option value={14}>Próximos 14 dias</option>
+          <option value={30}>Próximos 30 dias</option>
+        </FilterSelect>
+      </FilterBar>
       {isPending ? (
         <ListSkeleton rows={5} label="Carregando agenda" />
       ) : isError ? (
@@ -98,7 +101,7 @@ function Agenda() {
 function AgendaGroup({ title, items, danger }: { title: string; items: PlanningItem[]; danger?: boolean }) {
   return (
     <section className="agenda-group">
-      <h2 className={danger ? 'neg' : undefined}>{title}</h2>
+      <h2 className={`group-label${danger ? ' neg' : ''}`}>{title}</h2>
       <ul>
         {items.map((i, idx) => (
           <li key={`${i.kind}-${i.title}-${idx}`}>
@@ -107,7 +110,11 @@ function AgendaGroup({ title, items, danger }: { title: string; items: PlanningI
               {i.title}
             </Link>
             {(i.subtitle || i.amount !== null) && <span className="muted small">{[i.subtitle, i.amount !== null ? brl(i.amount) : null].filter(Boolean).join(' · ')}</span>}
-            {i.overdue && <span className="muted small">venceu em {dateBR(i.date)}</span>}
+            {i.overdue && (
+              <span className="neg small">
+                <DateValue value={i.date} mode="due" />
+              </span>
+            )}
           </li>
         ))}
       </ul>
@@ -117,17 +124,13 @@ function AgendaGroup({ title, items, danger }: { title: string; items: PlanningI
 
 // ---------------------------------------------------------------- tarefas
 
-function Tasks({ newSignal }: { newSignal: number }) {
+function Tasks() {
   const { user } = useAuth()
   const [onlyOpen, setOnlyOpen] = useState(true)
   const [editing, setEditing] = useState<{ task: Task | null } | null>(null)
   const [deleting, setDeleting] = useState<Task | null>(null)
   const { data, isPending, isError, refetch } = useTasks({ open: onlyOpen || undefined })
   const users = useUsers().data ?? []
-
-  useEffect(() => {
-    if (newSignal > 0) setEditing({ task: null })
-  }, [newSignal])
 
   const toggle = useCrmMutation(
     (t: Task) => api.post<Task>(`/api/tasks/${t.id}/status`, { status: t.status === 'Concluida' ? 'Aberta' : 'Concluida', version: t.version }),
@@ -137,15 +140,9 @@ function Tasks({ newSignal }: { newSignal: number }) {
 
   return (
     <>
-      <div className="toolbar">
-        <label className="check">
-          <input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} /> Só abertas
-        </label>
-        <span className="spacer" />
-        <Button type="button" variant="primary" onClick={() => setEditing({ task: null })}>
-          <Plus size={18} aria-hidden /> Nova tarefa
-        </Button>
-      </div>
+      <FilterBar>
+        <FilterCheck label="Só abertas" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} />
+      </FilterBar>
       {isPending ? (
         <ListSkeleton rows={5} label="Carregando tarefas" />
       ) : isError ? (
@@ -154,11 +151,7 @@ function Tasks({ newSignal }: { newSignal: number }) {
         <EmptyState
           icon={ListChecks}
           title="Nenhuma tarefa"
-          action={
-            <Button variant="primary" onClick={() => setEditing({ task: null })}>
-              <Plus size={16} aria-hidden /> Nova tarefa
-            </Button>
-          }
+          action={<CreateButton onClick={() => setEditing({ task: null })}>Nova tarefa</CreateButton>}
         >
           Crie tarefas para a equipe e acompanhe os prazos.
         </EmptyState>
@@ -177,7 +170,7 @@ function Tasks({ newSignal }: { newSignal: number }) {
                   </span>
                 </div>
                 <Badge tone={p.tone}>{p.label}</Badge>
-                <span className={`task-due small${t.overdue ? ' neg' : ' muted'}`}>{t.dueDate ? `${t.overdue ? 'Venceu ' : ''}${dateBR(t.dueDate)}` : 'Sem prazo'}</span>
+                <span className={`task-due small${t.overdue ? ' neg' : ' muted'}`}>{t.dueDate ? <DateValue value={t.dueDate} mode="due" /> : 'Sem prazo'}</span>
                 <RowActions label={t.title} onEdit={() => setEditing({ task: t })} onDelete={() => setDeleting(t)} />
               </li>
             )

@@ -1,19 +1,88 @@
+/** Valor ausente em células de tabela, fichas e métricas. */
+export const EMPTY = '—'
+
 const brlFormat = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
 export function brl(value: number | null | undefined): string {
-  return value === null || value === undefined ? '—' : brlFormat.format(value)
+  return value === null || value === undefined ? EMPTY : brlFormat.format(value)
 }
 
 /** Formata uma data ISO (AAAA-MM-DD ou datetime) como DD/MM/AAAA sem passar por fuso horário. */
 export function dateBR(iso: string | null | undefined): string {
-  if (!iso) return '—'
+  if (!iso) return EMPTY
   const [y, m, d] = iso.slice(0, 10).split('-')
   return `${d}/${m}/${y}`
 }
 
+/** Data e hora locais: 22/10/2026 14:30. */
 export function dateTimeBR(iso: string | null | undefined): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+  if (!iso) return EMPTY
+  const d = new Date(iso)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${dateBR(todayISO(d))} ${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
+/** Hora local: 14:30. */
+export function timeBR(iso: string | null | undefined): string {
+  if (!iso) return EMPTY
+  const d = new Date(iso)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
+/** Dia e mês, sem ano: 22/10. Para listas curtas em que o ano é óbvio. */
+export function dateShort(iso: string | null | undefined): string {
+  return iso ? dateBR(iso).slice(0, 5) : EMPTY
+}
+
+/** Mês de referência: 10/2026. */
+export function monthYear(iso: string | null | undefined): string {
+  return iso ? dateBR(iso).slice(3) : EMPTY
+}
+
+/** Dia relativo a hoje: hoje, amanhã, ontem, em 3 dias, há 2 dias; além de uma semana, a data completa. */
+export function relativeDay(iso: string | null | undefined, now: Date = new Date()): string {
+  if (!iso) return EMPTY
+  const d = daysUntil(iso, now)
+  if (d === 0) return 'hoje'
+  if (d === 1) return 'amanhã'
+  if (d === -1) return 'ontem'
+  if (d > 1 && d <= 7) return `em ${d} dias`
+  if (d < -1 && d >= -7) return `há ${-d} dias`
+  return dateBR(iso)
+}
+
+/** Prazo: vence hoje, vence em 3 dias, venceu há 2 dias; além de uma semana, só a data. */
+export function dueText(iso: string | null | undefined, now: Date = new Date()): string {
+  if (!iso) return EMPTY
+  const d = daysUntil(iso, now)
+  if (d === 0) return 'vence hoje'
+  if (d === 1) return 'vence amanhã'
+  if (d > 1 && d <= 7) return `vence em ${d} dias`
+  if (d === -1) return 'venceu ontem'
+  if (d < -1 && d >= -7) return `venceu há ${-d} dias`
+  if (d < -7) return `venceu em ${dateBR(iso)}`
+  return dateBR(iso)
+}
+
+export type DateMode = 'date' | 'short' | 'month' | 'datetime' | 'relative' | 'due'
+
+/** Único ponto de formatação de datas na interface; escolha o modo, não fatie strings. */
+export function formatDate(iso: string | null | undefined, mode: DateMode = 'date'): string {
+  switch (mode) {
+    case 'short':
+      return dateShort(iso)
+    case 'month':
+      return monthYear(iso)
+    case 'datetime':
+      return dateTimeBR(iso)
+    case 'relative':
+      return relativeDay(iso)
+    case 'due':
+      return dueText(iso)
+    default:
+      return dateBR(iso)
+  }
 }
 
 /** Data local de hoje como AAAA-MM-DD. */

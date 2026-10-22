@@ -5,6 +5,7 @@ import { Buildings, Funnel, MagnifyingGlass, type Icon } from '@phosphor-icons/r
 import { api, qs } from '../lib/api'
 import { useDebounced } from '../lib/useDebounced'
 import type { Client, Lead, Paged } from '../lib/types'
+import { ICON } from './ui'
 
 export interface Command {
   id: string
@@ -93,7 +94,7 @@ export function CommandPalette({ open, onClose, commands }: Props) {
       {open && (
         <>
           <div className="palette-input">
-            <MagnifyingGlass size={18} aria-hidden />
+            <MagnifyingGlass size={ICON.chrome} aria-hidden />
             <input
               autoFocus
               role="combobox"
@@ -143,7 +144,7 @@ export function CommandPalette({ open, onClose, commands }: Props) {
                         onMouseMove={() => setActive(index)}
                         onClick={() => run(item)}
                       >
-                        <IconComponent size={18} aria-hidden />
+                        <IconComponent size={ICON.chrome} aria-hidden />
                         {item.label}
                       </button>
                     )

@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { ArrowSquareOut, LinkSimple, Palette, Plus } from '@phosphor-icons/react'
+import { ArrowSquareOut, LinkSimple, Palette } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { STUDIO_KINDS, STUDIO_STATUSES, studioKindLabel } from '../lib/domain'
-import { dateBR, safeUrl } from '../lib/format'
+import { safeUrl } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useBrandKits, useReferences, useStudioProjects } from '../lib/queries'
 import type { BrandKit, ReferenceLink, StudioKind, StudioProject, StudioStatus } from '../lib/types'
-import { Badge, BoardSkeleton, Button, CardGridSkeleton, Dialog, EmptyState, ErrorNote, ListSkeleton, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, BoardSkeleton, Card, CardGridSkeleton, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, ICON, ItemTitle, ListSkeleton, PageHeader, SearchInput, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, Tabs, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 import { useDebounced } from '../lib/useDebounced'
@@ -14,15 +14,25 @@ import { useToast } from '../components/Toast'
 
 type Tab = 'projects' | 'kits' | 'references'
 
+const CREATE_LABEL: Record<Tab, string> = { projects: 'Novo projeto', kits: 'Novo kit', references: 'Nova referência' }
+
 export function StudioPage() {
   const [tab, setTab] = useState<Tab>('projects')
+  const [creating, setCreating] = useState(false)
   return (
     <>
-      <PageHeader title="Estúdio criativo" subtitle="Projetos, kits de marca e referências visuais (por link; envio de arquivos ainda não existe)" />
+      <PageHeader
+        title="Estúdio criativo"
+        subtitle="Projetos, kits de marca e referências visuais (por link; envio de arquivos ainda não existe)"
+        actions={<CreateButton onClick={() => setCreating(true)}>{CREATE_LABEL[tab]}</CreateButton>}
+      />
       <Tabs
         label="Seções do estúdio"
         value={tab}
-        onChange={setTab}
+        onChange={(t) => {
+          setCreating(false)
+          setTab(t)
+        }}
         tabs={[
           { key: 'projects', label: 'Projetos' },
           { key: 'kits', label: 'Kits de marca' },
@@ -32,18 +42,12 @@ export function StudioPage() {
       {tab === 'projects' && <Projects />}
       {tab === 'kits' && <Kits />}
       {tab === 'references' && <References />}
+      <Dialog open={creating} onClose={() => setCreating(false)} wide={tab !== 'references'} title={CREATE_LABEL[tab]}>
+        {creating && tab === 'projects' && <ProjectForm key="novo" project={null} onClose={() => setCreating(false)} />}
+        {creating && tab === 'kits' && <KitForm key="novo" kit={null} onClose={() => setCreating(false)} />}
+        {creating && tab === 'references' && <ReferenceForm key="nova" reference={null} onClose={() => setCreating(false)} />}
+      </Dialog>
     </>
-  )
-}
-
-function SectionBar({ label, onAdd }: { label: string; onAdd: () => void }) {
-  return (
-    <div className="toolbar">
-      <span className="spacer" />
-      <Button type="button" variant="primary" onClick={onAdd}>
-        <Plus size={18} aria-hidden /> {label}
-      </Button>
-    </div>
   )
 }
 
@@ -57,7 +61,6 @@ function Projects() {
 
   return (
     <>
-      <SectionBar label="Novo projeto" onAdd={() => setEditing({ project: null })} />
       {isPending ? (
         <BoardSkeleton columns={5} />
       ) : isError ? (
@@ -75,10 +78,14 @@ function Projects() {
                 <div className="column-body">
                   {items.length === 0 && <p className="column-empty">Nenhum projeto</p>}
                   {items.map((p) => (
-                    <article key={p.id} className="lead-card studio-card">
+                    <article key={p.id} className="card card-sm lead-card studio-card">
                       <strong className="lead-company">{p.title}</strong>
                       <span className="lead-meta">{[studioKindLabel(p.kind), p.clientName ?? 'Noxen'].join(' · ')}</span>
-                      {p.dueDate && <span className="lead-meta">Entrega: {dateBR(p.dueDate)}</span>}
+                      {p.dueDate && (
+                        <span className="lead-meta">
+                          Entrega: <DateValue value={p.dueDate} />
+                        </span>
+                      )}
                       <RowActions label={p.title} onEdit={() => setEditing({ project: p })} onDelete={() => setDeleting(p)} />
                     </article>
                   ))}
@@ -190,23 +197,24 @@ function Kits() {
 
   return (
     <>
-      <SectionBar label="Novo kit" onAdd={() => setEditing({ kit: null })} />
       {isPending ? (
         <CardGridSkeleton cards={3} />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os kits." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
-        <EmptyState icon={Palette} title="Nenhum kit de marca">Guarde cores, fontes e tom de voz de cada cliente para criar com consistência.</EmptyState>
+        <EmptyState icon={Palette} title="Nenhum kit de marca" action={<CreateButton onClick={() => setEditing({ kit: null })}>Novo kit</CreateButton>}>
+          Guarde cores, fontes e tom de voz de cada cliente para criar com consistência.
+        </EmptyState>
       ) : (
         <div className="idea-grid">
           {data.map((k) => {
             const logo = safeUrl(k.logoUrl)
             return (
-              <article key={k.id} className="idea">
-                <header>
-                  <h2>{k.name}</h2>
+              <Card as="article" key={k.id}>
+                <div className="card-row">
+                  <ItemTitle>{k.name}</ItemTitle>
                   <RowActions label={k.name} onEdit={() => setEditing({ kit: k })} onDelete={() => setDeleting(k)} />
-                </header>
+                </div>
                 <p className="muted small">{k.clientName ?? 'Noxen'}</p>
                 {k.colors.length > 0 && (
                   <ul className="swatches" aria-label="Cores">
@@ -222,10 +230,10 @@ function Kits() {
                 {k.elements && <p className="pre small">{k.elements}</p>}
                 {logo && (
                   <a className="small" href={logo} target="_blank" rel="noopener noreferrer">
-                    Ver logo <ArrowSquareOut size={12} aria-hidden />
+                    Ver logo <ArrowSquareOut size={ICON.meta} aria-hidden />
                   </a>
                 )}
-              </article>
+              </Card>
             )
           })}
         </div>
@@ -301,19 +309,17 @@ function References() {
 
   return (
     <>
-      <div className="toolbar">
-        <input className="select-inline" type="search" placeholder="Filtrar por tag" aria-label="Filtrar por tag" value={tagText} onChange={(e) => setTagText(e.target.value)} />
-        <span className="spacer" />
-        <Button type="button" variant="primary" onClick={() => setEditing({ ref: null })}>
-          <Plus size={18} aria-hidden /> Nova referência
-        </Button>
-      </div>
+      <FilterBar>
+        <SearchInput label="Filtrar por tag" placeholder="Filtrar por tag" value={tagText} onChange={(e) => setTagText(e.target.value)} />
+      </FilterBar>
       {isPending ? (
         <ListSkeleton rows={4} label="Carregando referências" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as referências." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
-        <EmptyState icon={LinkSimple} title="Nenhuma referência">{tag ? 'Nenhuma referência com essa tag.' : 'Salve links de inspiração (anúncios, perfis, moodboards).'}</EmptyState>
+        <EmptyState icon={LinkSimple} title="Nenhuma referência" action={tag ? undefined : <CreateButton onClick={() => setEditing({ ref: null })}>Nova referência</CreateButton>}>
+          {tag ? 'Nenhuma referência com essa tag.' : 'Salve links de inspiração (anúncios, perfis, moodboards).'}
+        </EmptyState>
       ) : (
         <ul className="timeline">
           {data.map((r) => {
@@ -323,7 +329,7 @@ function References() {
                 <div className="timeline-head">
                   {url ? (
                     <a href={url} target="_blank" rel="noopener noreferrer">
-                      <strong>{r.title}</strong> <ArrowSquareOut size={14} aria-hidden />
+                      <strong>{r.title}</strong> <ArrowSquareOut size={ICON.meta} aria-hidden />
                     </a>
                   ) : (
                     <strong>{r.title}</strong>

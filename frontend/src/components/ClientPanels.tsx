@@ -1,12 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { Plus } from '@phosphor-icons/react'
 import { api } from '../lib/api'
-import { brl, dateBR, dateTimeBR, fromDateTimeLocal, parseMoney, todayISO, toDateTimeLocal } from '../lib/format'
+import { EMPTY, brl, formatDate, fromDateTimeLocal, parseMoney, todayISO, toDateTimeLocal } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useCampaigns, useMeetings, usePayments, useResults } from '../lib/queries'
 import type { Campaign, CampaignStatus, Meeting, MonthlyResult } from '../lib/types'
 import type { Tone } from '../lib/domain'
-import { Badge, Dialog, EmptyState, ErrorNote, SelectField, TextAreaField, TextField, Button } from './ui'
+import { Badge, Card, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, ListSkeleton, SectionTitle, SelectField, TextAreaField, TextField } from './ui'
 import { ConfirmDialog, FormFooter, RowActions, Tabs, blankToNull, useForm } from './common'
 import { PaymentFormDialog, PaymentsTable } from './FinanceParts'
 
@@ -21,23 +20,21 @@ export function ClientPanels({ clientId, canFinance }: { clientId: string; canFi
     { key: 'results', label: 'Resultados' },
   ]
   return (
-    <section className="panel panel-tabs">
+    <Card className="detail-below" aria-label="Pagamentos, reuniões, campanhas e resultados do cliente">
       <Tabs label="Seções do cliente" tabs={tabs} value={tab} onChange={setTab} />
       {tab === 'payments' && canFinance && <PaymentsPanel clientId={clientId} />}
       {tab === 'meetings' && <MeetingsPanel clientId={clientId} />}
       {tab === 'campaigns' && <CampaignsPanel clientId={clientId} />}
       {tab === 'results' && <ResultsPanel clientId={clientId} />}
-    </section>
+    </Card>
   )
 }
 
-function PanelHead({ title, action }: { title: string; action: () => void }) {
+function PanelHead({ title, label, action }: { title: string; label: string; action: () => void }) {
   return (
-    <div className="panel-head">
-      <h2>{title}</h2>
-      <Button type="button" variant="primary" size="sm" onClick={action}>
-        <Plus size={16} aria-hidden /> Adicionar
-      </Button>
+    <div className="card-head">
+      <SectionTitle>{title}</SectionTitle>
+      <CreateButton onClick={action}>{label}</CreateButton>
     </div>
   )
 }
@@ -49,9 +46,9 @@ function PaymentsPanel({ clientId }: { clientId: string }) {
   const [creating, setCreating] = useState(false)
   return (
     <>
-      <PanelHead title="Histórico de pagamentos" action={() => setCreating(true)} />
+      <PanelHead title="Histórico de pagamentos" label="Nova cobrança" action={() => setCreating(true)} />
       {isPending ? (
-        <p className="loading">Carregando…</p>
+        <ListSkeleton rows={3} label="Carregando" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os pagamentos." onRetry={() => void refetch()} />
       ) : data.items.length === 0 ? (
@@ -74,9 +71,9 @@ function MeetingsPanel({ clientId }: { clientId: string }) {
 
   return (
     <>
-      <PanelHead title="Reuniões" action={() => setEditing({ meeting: null })} />
+      <PanelHead title="Reuniões" label="Nova reunião" action={() => setEditing({ meeting: null })} />
       {isPending ? (
-        <p className="loading">Carregando…</p>
+        <ListSkeleton rows={3} label="Carregando" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as reuniões." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
@@ -87,7 +84,7 @@ function MeetingsPanel({ clientId }: { clientId: string }) {
             <li key={m.id}>
               <div className="timeline-head">
                 <strong>{m.subject}</strong>
-                <span className="muted small">{dateTimeBR(m.heldAt)}</span>
+                <span className="muted small"><DateValue value={m.heldAt} mode="datetime" /></span>
                 <RowActions label={m.subject} onEdit={() => setEditing({ meeting: m })} onDelete={() => setDeleting(m)} />
               </div>
               {m.notes && <p className="pre">{m.notes}</p>}
@@ -157,9 +154,9 @@ function CampaignsPanel({ clientId }: { clientId: string }) {
 
   return (
     <>
-      <PanelHead title="Campanhas" action={() => setEditing({ campaign: null })} />
+      <PanelHead title="Campanhas" label="Nova campanha" action={() => setEditing({ campaign: null })} />
       {isPending ? (
-        <p className="loading">Carregando…</p>
+        <ListSkeleton rows={3} label="Carregando" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as campanhas." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
@@ -191,7 +188,7 @@ function CampaignsPanel({ clientId }: { clientId: string }) {
                     <Badge tone={CAMPAIGN_TONE[c.status]}>{c.status}</Badge>
                   </td>
                   <td>
-                    {dateBR(c.startDate)} → {c.endDate ? dateBR(c.endDate) : 'em aberto'}
+                    {formatDate(c.startDate)} → {c.endDate ? formatDate(c.endDate) : 'em aberto'}
                   </td>
                   <td className="num">{brl(c.budget)}</td>
                   <td>
@@ -274,7 +271,7 @@ function CampaignForm({ clientId, campaign, onClose }: { clientId: string; campa
 
 // ---------------------------------------------------------------- resultados
 
-const num = (n: number | null, digits = 2) => (n === null ? '—' : n.toLocaleString('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits }))
+const num = (n: number | null, digits = 2) => (n === null ? EMPTY : n.toLocaleString('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits }))
 
 function ResultsPanel({ clientId }: { clientId: string }) {
   const { data, isPending, isError, refetch } = useResults(clientId)
@@ -284,9 +281,9 @@ function ResultsPanel({ clientId }: { clientId: string }) {
 
   return (
     <>
-      <PanelHead title="Resultados mensais" action={() => setEditing({ result: null })} />
+      <PanelHead title="Resultados mensais" label="Novo resultado" action={() => setEditing({ result: null })} />
       {isPending ? (
-        <p className="loading">Carregando…</p>
+        <ListSkeleton rows={3} label="Carregando" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os resultados." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
@@ -312,16 +309,16 @@ function ResultsPanel({ clientId }: { clientId: string }) {
             <tbody>
               {data.map((r) => (
                 <tr key={r.id}>
-                  <th scope="row">{dateBR(r.month).slice(3)}</th>
+                  <th scope="row">{formatDate(r.month, 'month')}</th>
                   <td className="num">{brl(r.adSpend)}</td>
                   <td className="num">{r.leads}</td>
                   <td className="num">{r.sales}</td>
                   <td className="num">{brl(r.revenue)}</td>
-                  <td className="num">{r.costPerLead === null ? '—' : brl(r.costPerLead)}</td>
-                  <td className="num">{r.costPerSale === null ? '—' : brl(r.costPerSale)}</td>
-                  <td className="num">{r.roas === null ? '—' : `${num(r.roas)}x`}</td>
+                  <td className="num">{r.costPerLead === null ? EMPTY : brl(r.costPerLead)}</td>
+                  <td className="num">{r.costPerSale === null ? EMPTY : brl(r.costPerSale)}</td>
+                  <td className="num">{r.roas === null ? EMPTY : `${num(r.roas)}x`}</td>
                   <td>
-                    <RowActions label={`resultado de ${dateBR(r.month).slice(3)}`} onEdit={() => setEditing({ result: r })} onDelete={() => setDeleting(r)} />
+                    <RowActions label={`resultado de ${formatDate(r.month, 'month')}`} onEdit={() => setEditing({ result: r })} onDelete={() => setDeleting(r)} />
                   </td>
                 </tr>
               ))}
@@ -332,7 +329,7 @@ function ResultsPanel({ clientId }: { clientId: string }) {
       <Dialog open={!!editing} onClose={() => setEditing(null)} title={editing?.result ? 'Editar resultado' : 'Novo resultado'}>
         {editing && <ResultForm key={editing.result?.id ?? 'novo'} clientId={clientId} result={editing.result} onClose={() => setEditing(null)} />}
       </Dialog>
-      <ConfirmDialog open={!!deleting} title="Excluir resultado?" description={deleting ? dateBR(deleting.month).slice(3) : undefined} confirmLabel="Excluir" danger busy={del.isPending} error={del.error?.message} onConfirm={() => deleting && del.mutate(deleting)} onClose={() => setDeleting(null)} />
+      <ConfirmDialog open={!!deleting} title="Excluir resultado?" description={deleting ? formatDate(deleting.month, 'month') : undefined} confirmLabel="Excluir" danger busy={del.isPending} error={del.error?.message} onConfirm={() => deleting && del.mutate(deleting)} onClose={() => setDeleting(null)} />
     </>
   )
 }

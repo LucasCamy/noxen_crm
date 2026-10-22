@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, CheckCircle } from '@phosphor-icons/react'
 import { useDashboard, usePlanning } from '../lib/queries'
-import { addDaysISO, brl, dateBR, daysUntil, todayISO } from '../lib/format'
+import { addDaysISO, brl, dateBR, daysUntil, formatDate, timeBR, todayISO } from '../lib/format'
 import { CLIENT_STATUSES, STAGES, type Tone } from '../lib/domain'
-import { Badge, EmptyState, ErrorNote, PageHeader, Skeleton } from '../components/ui'
+import { Badge, Card, EmptyState, ErrorNote, ICON, PageHeader, SectionTitle, Skeleton } from '../components/ui'
 import type { PlanningItem } from '../lib/types'
 
 const KIND_TONE: Record<string, Tone> = { Tarefa: 'brand', 'Follow-up': 'info', Reunião: 'teal', Vencimento: 'warning', Conteúdo: 'neutral' }
@@ -11,7 +11,7 @@ const KIND_TONE: Record<string, Tone> = { Tarefa: 'brand', 'Follow-up': 'info', 
 function DashboardSkeleton() {
   return (
     <div className="dash" role="status" aria-live="polite" aria-label="Carregando painel">
-      <div className="module goal" aria-hidden>
+      <div className="card card-none goal" aria-hidden>
         <div className="goal-main">
           <Skeleton h={14} w={180} />
           <Skeleton h={52} w={140} r={8} />
@@ -29,15 +29,15 @@ function DashboardSkeleton() {
         </div>
       </div>
       <div className="dash-cols" aria-hidden>
-        <div className="module">
-          <div className="module-body skeleton-stack">
+        <div className="card">
+          <div className="skeleton-stack">
             {Array.from({ length: 7 }, (_, i) => (
               <Skeleton key={i} h={12} w={`${40 + ((i * 17) % 55)}%`} />
             ))}
           </div>
         </div>
-        <div className="module">
-          <div className="module-body skeleton-stack">
+        <div className="card">
+          <div className="skeleton-stack">
             {Array.from({ length: 5 }, (_, i) => (
               <Skeleton key={i} h={32} />
             ))}
@@ -62,7 +62,7 @@ function TodayList({ items }: { items: PlanningItem[] }) {
           <Badge tone={i.overdue ? 'danger' : (KIND_TONE[i.kind] ?? 'neutral')}>{i.overdue ? 'Atrasado' : i.kind}</Badge>
           <Link to={i.link}>{i.title}</Link>
           <span className="meta">
-            {[i.subtitle, i.amount !== null ? brl(i.amount) : null, dateBR(i.date)].filter(Boolean).join(' · ')}
+            {[i.subtitle, i.amount !== null ? brl(i.amount) : null, formatDate(i.date, i.overdue ? 'due' : 'relative')].filter(Boolean).join(' · ')}
           </span>
         </li>
       ))}
@@ -97,11 +97,9 @@ export function DashboardPage() {
       <PageHeader title="Painel" subtitle={`Meta: ${data.targetClients} clientes ativos até ${dateBR(data.deadline)}`} />
 
       <div className="dash">
-        <section className="module goal" aria-labelledby="goal-title">
+        <Card padding="none" className="goal" aria-labelledby="goal-title">
           <div className="goal-main">
-            <h2 className="module-title" id="goal-title">
-              Clientes ativos
-            </h2>
+            <SectionTitle id="goal-title">Clientes ativos</SectionTitle>
             <div className="goal-figure">
               <span className="goal-value">{data.activeClients}</span>
               <span className="goal-of">de {data.targetClients}</span>
@@ -141,100 +139,89 @@ export function DashboardPage() {
               <span className="stat-caption">{data.followUpsDue > 0 ? <Link to="/leads">Ver no funil</Link> : 'Nenhum atrasado'}</span>
             </div>
           </div>
-        </section>
+        </Card>
 
         <div className="dash-cols">
           <div className="dash-stack">
-            <section className="module" aria-labelledby="funnel-title">
-              <div className="module-head">
-                <h2 className="module-title" id="funnel-title">
-                  Funil de leads
-                </h2>
+            <Card
+              title="Funil de leads"
+              action={
                 <Link to="/leads" className="small">
                   Abrir funil
                 </Link>
-              </div>
-              <div className="module-body">
-                <ul className="funnel">
-                  {STAGES.map((s) => {
-                    const idx = openStages.findIndex((o) => o.key === s.key)
-                    const t = idx >= 0 ? 35 + (65 * idx) / Math.max(openStages.length - 1, 1) : 100
-                    const cls = s.key === 'Fechado' ? 'bar bar-success' : s.key === 'Perdido' ? 'bar bar-danger' : 'bar'
-                    return (
-                      <li key={s.key} className="funnel-row">
-                        <span className="funnel-label">{s.label}</span>
-                        <span className={cls} aria-hidden>
-                          <i style={{ ['--v' as string]: data.leadsByStage[s.key] / maxStage, ['--t' as string]: `${t}%` }} />
-                        </span>
-                        <span className="funnel-count">{data.leadsByStage[s.key]}</span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            </section>
+              }
+            >
+              <ul className="funnel">
+                {STAGES.map((s) => {
+                  const idx = openStages.findIndex((o) => o.key === s.key)
+                  const t = idx >= 0 ? 35 + (65 * idx) / Math.max(openStages.length - 1, 1) : 100
+                  const cls = s.key === 'Fechado' ? 'bar bar-success' : s.key === 'Perdido' ? 'bar bar-danger' : 'bar'
+                  return (
+                    <li key={s.key} className="funnel-row">
+                      <span className="funnel-label">{s.label}</span>
+                      <span className={cls} aria-hidden>
+                        <i style={{ ['--v' as string]: data.leadsByStage[s.key] / maxStage, ['--t' as string]: `${t}%` }} />
+                      </span>
+                      <span className="funnel-count">{data.leadsByStage[s.key]}</span>
+                    </li>
+                  )
+                })}
+              </ul>
+            </Card>
 
-            <section className="module" aria-labelledby="portfolio-title">
-              <div className="module-head">
-                <h2 className="module-title" id="portfolio-title">
-                  Carteira por status
-                </h2>
+            <Card
+              title="Carteira por status"
+              action={
                 <Link to="/clients" className="small">
                   Ver clientes
                 </Link>
-              </div>
-              <div className="module-body">
-                {clientsTotal === 0 ? (
-                  <p className="muted">Nenhum cliente ainda. Converta um lead fechado ou cadastre o primeiro.</p>
-                ) : (
-                  <>
-                    <div className="split-bar" role="img" aria-label="Distribuição dos clientes por status">
-                      {CLIENT_STATUSES.filter((s) => data.clientsByStatus[s.key] > 0).map((s) => (
-                        <i key={s.key} className={`tone-${s.tone}`} style={{ flex: data.clientsByStatus[s.key] }} />
-                      ))}
-                    </div>
-                    <ul className="legend">
-                      {CLIENT_STATUSES.map((s) => (
-                        <li key={s.key}>
-                          <Badge tone={s.tone}>{s.label}</Badge>
-                          <strong>{data.clientsByStatus[s.key]}</strong>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </div>
-            </section>
+              }
+            >
+              {clientsTotal === 0 ? (
+                <p className="muted">Nenhum cliente ainda. Converta um lead fechado ou cadastre o primeiro.</p>
+              ) : (
+                <>
+                  <div className="split-bar" role="img" aria-label="Distribuição dos clientes por status">
+                    {CLIENT_STATUSES.filter((s) => data.clientsByStatus[s.key] > 0).map((s) => (
+                      <i key={s.key} className={`tone-${s.tone}`} style={{ flex: data.clientsByStatus[s.key] }} />
+                    ))}
+                  </div>
+                  <ul className="legend">
+                    {CLIENT_STATUSES.map((s) => (
+                      <li key={s.key}>
+                        <Badge tone={s.tone}>{s.label}</Badge>
+                        <strong>{data.clientsByStatus[s.key]}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </Card>
           </div>
 
-          <section className="module" aria-labelledby="today-title">
-            <div className="module-head">
-              <h2 className="module-title" id="today-title">
-                Para os próximos 7 dias
-              </h2>
+          <Card
+            title="Para os próximos 7 dias"
+            action={
               <Link to="/planning" className="small">
-                Agenda completa <ArrowRight size={12} aria-hidden style={{ verticalAlign: '-1px' }} />
+                Agenda completa <ArrowRight className="link-icon" size={ICON.meta} aria-hidden />
               </Link>
-            </div>
-            <div className="module-body">
-              {agenda.isPending ? (
-                <div className="skeleton-stack" role="status" aria-live="polite" aria-label="Carregando agenda">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <Skeleton key={i} h={34} />
-                  ))}
-                </div>
-              ) : agenda.isError ? (
-                <ErrorNote message="Não foi possível carregar a agenda." onRetry={() => void agenda.refetch()} />
-              ) : (
-                <TodayList items={todayItems} />
-              )}
-            </div>
-          </section>
+            }
+          >
+            {agenda.isPending ? (
+              <div className="skeleton-stack" role="status" aria-live="polite" aria-label="Carregando agenda">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <Skeleton key={i} h={34} />
+                ))}
+              </div>
+            ) : agenda.isError ? (
+              <ErrorNote message="Não foi possível carregar a agenda." onRetry={() => void agenda.refetch()} />
+            ) : (
+              <TodayList items={todayItems} />
+            )}
+          </Card>
         </div>
       </div>
-      <p className="muted small" style={{ marginTop: 16 }}>
-        Atualizado às {new Date(data.generatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-      </p>
+      <p className="muted small updated-at">Atualizado às {timeBR(data.generatedAt)}</p>
     </>
   )
 }
