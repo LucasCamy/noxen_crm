@@ -6,6 +6,7 @@ using Noxen.Crm.Api.Auth;
 using Noxen.Crm.Api.Clients;
 using Noxen.Crm.Api.Common;
 using Noxen.Crm.Api.Dashboard;
+using Noxen.Crm.Api.Finance;
 using Noxen.Crm.Api.Leads;
 using Noxen.Crm.Infrastructure;
 using Noxen.Crm.Infrastructure.Persistence;
@@ -76,6 +77,8 @@ app.MapUsers();
 app.MapLeads();
 app.MapClients();
 app.MapDashboard();
+app.MapFinance();
+app.MapClientActivities();
 
 app.Run();
 

@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Noxen.Crm.Domain.Clients;
+using Noxen.Crm.Domain.Finance;
 using Noxen.Crm.Domain.Leads;
+using Noxen.Crm.Domain.Marketing;
 using Noxen.Crm.Domain.Outbox;
 
 namespace Noxen.Crm.Infrastructure.Persistence;
@@ -15,6 +17,11 @@ public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
+    public DbSet<ClientMeeting> ClientMeetings => Set<ClientMeeting>();
+    public DbSet<Campaign> Campaigns => Set<Campaign>();
+    public DbSet<MonthlyResult> MonthlyResults => Set<MonthlyResult>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -99,6 +106,78 @@ public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
             e.Property(x => x.TokenHash).HasMaxLength(64).IsRequired();
             e.HasIndex(x => x.TokenHash).IsUnique();
             e.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<Payment>(e =>
+        {
+            e.ToTable("payments");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(30);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(30);
+            e.Property(x => x.Amount).HasPrecision(14, 2);
+            e.Property(x => x.Description).HasMaxLength(300);
+            e.Property(x => x.Version).IsRowVersion();
+            // Uma mensalidade por cliente e mês: o gerador automático e o cadastro manual não duplicam.
+            e.HasIndex(x => new { x.ClientId, x.ReferenceMonth }).IsUnique().HasFilter("\"Kind\" = 'Mensalidade' AND \"Status\" <> 'Cancelado'");
+            e.HasIndex(x => x.DueDate);
+            e.HasIndex(x => x.Status);
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<LedgerEntry>(e =>
+        {
+            e.ToTable("ledger_entries");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(30);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(30);
+            e.Property(x => x.Description).HasMaxLength(300).IsRequired();
+            e.Property(x => x.Category).HasMaxLength(100);
+            e.Property(x => x.Amount).HasPrecision(14, 2);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasIndex(x => x.Date);
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<ClientMeeting>(e =>
+        {
+            e.ToTable("client_meetings");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Subject).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Notes).HasMaxLength(8000);
+            e.Property(x => x.NextSteps).HasMaxLength(4000);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasIndex(x => new { x.ClientId, x.HeldAt });
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<Campaign>(e =>
+        {
+            e.ToTable("campaigns");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Objective).HasMaxLength(500);
+            e.Property(x => x.Audience).HasMaxLength(1000);
+            e.Property(x => x.Creatives).HasMaxLength(2000);
+            e.Property(x => x.Budget).HasPrecision(14, 2);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(30);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasIndex(x => new { x.ClientId, x.StartDate });
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<MonthlyResult>(e =>
+        {
+            e.ToTable("monthly_results");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.AdSpend).HasPrecision(14, 2);
+            e.Property(x => x.Revenue).HasPrecision(14, 2);
+            e.Property(x => x.Notes).HasMaxLength(2000);
+            e.Ignore(x => x.CostPerLead);
+            e.Ignore(x => x.CostPerSale);
+            e.Ignore(x => x.Roas);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasIndex(x => new { x.ClientId, x.Month }).IsUnique();
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

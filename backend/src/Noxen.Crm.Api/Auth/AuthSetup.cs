@@ -27,6 +27,10 @@ public static class Policies
 {
     public const string AdminOnly = "AdminOnly";
     public const string CanWriteCrm = "CanWriteCrm";
+    /// <summary>Campanhas, resultados e reuniões: Marketing também escreve.</summary>
+    public const string CanWriteMarketing = "CanWriteMarketing";
+    /// <summary>Cobranças, lançamentos e resumo financeiro: Marketing não vê.</summary>
+    public const string CanManageFinance = "CanManageFinance";
 }
 
 public static class AuthSetup
@@ -75,7 +79,9 @@ public static class AuthSetup
             .SetFallbackPolicy(new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser().Build())
             .AddPolicy(Policies.AdminOnly, p => p.RequireRole(Roles.Admin))
-            .AddPolicy(Policies.CanWriteCrm, p => p.RequireRole(Roles.Admin, Roles.Comercial));
+            .AddPolicy(Policies.CanWriteCrm, p => p.RequireRole(Roles.Admin, Roles.Comercial))
+            .AddPolicy(Policies.CanWriteMarketing, p => p.RequireRole(Roles.Admin, Roles.Comercial, Roles.Marketing))
+            .AddPolicy(Policies.CanManageFinance, p => p.RequireRole(Roles.Admin, Roles.Comercial));
 
         services.AddScoped<TokenService>();
         return services;

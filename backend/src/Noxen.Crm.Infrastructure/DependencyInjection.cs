@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Noxen.Crm.Infrastructure.Finance;
 using Noxen.Crm.Infrastructure.Messaging;
 using Noxen.Crm.Infrastructure.Persistence;
 
@@ -23,6 +24,7 @@ public static class DependencyInjection
             o.InstanceName = "noxen-crm:";
         });
         services.AddSingleton(TimeProvider.System);
+        services.AddScoped<ChargeGenerator>();
         return services;
     }
 
