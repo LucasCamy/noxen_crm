@@ -79,6 +79,7 @@ public static class LeadEndpoints
         group.MapPut("/{id:guid}", Update).RequireAuthorization(Policies.CanWriteCrm);
         group.MapPost("/{id:guid}/stage", ChangeStage).RequireAuthorization(Policies.CanWriteCrm);
         group.MapPost("/{id:guid}/convert", Convert).RequireAuthorization(Policies.CanWriteCrm);
+        group.MapDelete("/{id:guid}", Remove).RequireAuthorization(Policies.AdminOnly);
     }
 
     private static async Task<IResult> List(
@@ -180,6 +181,23 @@ public static class LeadEndpoints
             throw;
         }
         return Results.Created($"/api/clients/{client.Id}", ClientResponse.From(client));
+    }
+
+    /// <summary>
+    /// Exclusão definitiva (pedido de remoção de dados pessoais, LGPD). Só Admin. Um lead já convertido em cliente
+    /// não pode ser excluído por aqui: ele sustenta o histórico do cliente.
+    /// </summary>
+    private static async Task<IResult> Remove(Guid id, CrmDbContext db, TimeProvider clock)
+    {
+        var lead = await db.Leads.SingleOrDefaultAsync(l => l.Id == id);
+        if (lead is null) return Results.NotFound();
+        if (await db.Clients.AnyAsync(c => c.LeadId == id))
+            return Results.Problem(statusCode: 409, title: "Este lead já foi convertido em cliente e não pode ser excluído.");
+
+        db.Leads.Remove(lead); // o histórico de etapas sai em cascata; tarefas ligadas ficam sem o vínculo
+        db.AddEvent(EventTypes.LeadDeleted, new LeadDeletedEvent(id), clock.GetUtcNow());
+        await db.SaveChangesAsync();
+        return Results.NoContent();
     }
 
     private static Task<Client?> FindClientAsync(CrmDbContext db, Guid leadId) =>

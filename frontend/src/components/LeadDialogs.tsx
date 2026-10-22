@@ -9,6 +9,8 @@ import type { Client, Lead, LeadInput, LeadSource, LeadStage, UserLookup } from 
 import { Badge, Dialog, ErrorNote, SelectField, TextAreaField, TextField } from './ui'
 import { useToast } from './Toast'
 import { MessageComposer } from './MessageComposer'
+import { ConfirmDialog } from './common'
+import { useAuth } from '../auth/AuthContext'
 
 function useInvalidateCrm() {
   const queryClient = useQueryClient()
@@ -87,7 +89,17 @@ export function LeadDialog(props: LeadDialogProps) {
 
 function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: LeadDialogProps) {
   const toast = useToast()
+  const { isAdmin } = useAuth()
   const invalidate = useInvalidateCrm()
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const remove = useMutation({
+    mutationFn: () => api.delete(`/api/leads/${lead!.id}`),
+    onSuccess: async () => {
+      await invalidate()
+      toast('Lead excluído definitivamente.')
+      onClose()
+    },
+  })
   const [values, setValues] = useState(() => toForm(lead, currentUserId))
   const [valueError, setValueError] = useState<string | undefined>()
   const history = useLeadHistory(lead?.id ?? null)
@@ -221,6 +233,18 @@ function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: Lea
 
       {lead && canWrite && lead.stage !== 'Fechado' && <MessageComposer lead={lead} />}
 
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Excluir lead definitivamente?"
+        description={lead ? `${lead.company} e o histórico de etapas serão apagados. Esta ação não pode ser desfeita.` : undefined}
+        confirmLabel="Excluir definitivamente"
+        danger
+        busy={remove.isPending}
+        error={remove.error?.message}
+        onConfirm={() => remove.mutate()}
+        onClose={() => setConfirmDelete(false)}
+      />
+
       <footer className="dialog-footer">
         {movable && (
           <label className="move-select">
@@ -242,6 +266,11 @@ function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: Lea
               ))}
             </select>
           </label>
+        )}
+        {lead && isAdmin && lead.stage !== 'Fechado' && (
+          <button type="button" className="btn btn-ghost btn-danger-text" onClick={() => setConfirmDelete(true)}>
+            Excluir lead
+          </button>
         )}
         <span className="spacer" />
         <button type="button" className="btn btn-secondary" onClick={onClose}>

@@ -10,12 +10,14 @@ public static class EventTypes
     public const string LeadCreated = "lead.created";
     public const string LeadStageChanged = "lead.stage-changed";
     public const string LeadConverted = "lead.converted";
+    public const string LeadDeleted = "lead.deleted";
     public const string ClientChanged = "client.changed";
 }
 
 public sealed record LeadCreatedEvent(Guid LeadId);
 public sealed record LeadStageChangedEvent(Guid LeadId, string From, string To);
 public sealed record LeadConvertedEvent(Guid LeadId, Guid ClientId);
+public sealed record LeadDeletedEvent(Guid LeadId);
 public sealed record ClientChangedEvent(Guid ClientId, string Reason);
 
 public static class OutboxExtensions

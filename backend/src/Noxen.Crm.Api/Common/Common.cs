@@ -36,6 +36,8 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogger
                 "O registro foi alterado por outra pessoa. Recarregue e tente novamente."),
             DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } } =>
                 (StatusCodes.Status409Conflict, "Já existe um registro com esses dados."),
+            DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation } } =>
+                (StatusCodes.Status409Conflict, "Este registro está em uso por outros dados e não pode ser removido."),
             _ => (0, ""),
         };
         if (status == 0)

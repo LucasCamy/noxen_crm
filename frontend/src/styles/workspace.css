@@ -218,3 +218,12 @@
     justify-self: start;
   }
 }
+
+.btn-danger-text {
+  color: var(--color-status-danger-fg);
+}
+
+.btn-danger-text:not(:disabled):hover {
+  background: var(--color-status-danger-bg);
+  color: var(--color-status-danger-fg);
+}
