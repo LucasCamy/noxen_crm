@@ -4,7 +4,7 @@ import { api, ApiError } from '../lib/api'
 import { BRAZILIAN_STATES } from '../lib/domain'
 import { fromDateTimeLocal, parseMoney, toDateTimeLocal } from '../lib/format'
 import type { Client, ClientInput, UserLookup } from '../lib/types'
-import { ErrorNote, SelectField, TextAreaField, TextField } from './ui'
+import { ErrorNote, SelectField, TextAreaField, TextField, Button } from './ui'
 import { useToast } from './Toast'
 
 interface Values {
@@ -165,13 +165,13 @@ export function ClientForm({ client, users, currentUserId, canWrite, onSaved, on
         <footer className="dialog-footer">
           <span className="spacer" />
           {onCancel && (
-            <button type="button" className="btn btn-secondary" onClick={onCancel}>
+            <Button type="button" onClick={onCancel}>
               Cancelar
-            </button>
+            </Button>
           )}
-          <button type="submit" className="btn btn-primary" disabled={save.isPending}>
+          <Button type="submit" variant="primary" disabled={save.isPending}>
             {save.isPending ? 'Salvando…' : client ? 'Salvar alterações' : 'Cadastrar cliente'}
-          </button>
+          </Button>
         </footer>
       )}
     </form>

@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react'
-import { Plus } from 'lucide-react'
+import { BookOpen, Plus } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { useCrmMutation } from '../lib/mutations'
 import { useKnowledge } from '../lib/queries'
 import type { KnowledgeDoc } from '../lib/types'
-import { Dialog, EmptyState, ErrorNote, PageHeader, TextAreaField, TextField } from '../components/ui'
+import { Button, CardGridSkeleton, Dialog, EmptyState, ErrorNote, PageHeader, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 
 export function KnowledgePage() {
@@ -20,17 +20,27 @@ export function KnowledgePage() {
         title="Base estratégica"
         subtitle="Posicionamento, ofertas, tom de voz e decisões da agência"
         actions={
-          <button type="button" className="btn btn-primary" onClick={() => setEditing({ doc: null })}>
+          <Button type="button" variant="primary" onClick={() => setEditing({ doc: null })}>
             <Plus size={18} aria-hidden /> Nova seção
-          </button>
+          </Button>
         }
       />
       {isPending ? (
-        <p className="loading">Carregando…</p>
+        <CardGridSkeleton cards={3} />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar a base." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
-        <EmptyState title="A base está vazia">Registre aqui o posicionamento, as ofertas e o tom de voz para toda a equipe consultar.</EmptyState>
+        <EmptyState
+          icon={BookOpen}
+          title="A base está vazia"
+          action={
+            <Button variant="primary" onClick={() => setEditing({ doc: null })}>
+              <Plus size={16} aria-hidden /> Nova seção
+            </Button>
+          }
+        >
+          Registre aqui o posicionamento, as ofertas e o tom de voz para toda a equipe consultar.
+        </EmptyState>
       ) : (
         <div className="docs">
           {data.map((d) => (

@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../lib/api'
 import { useCrmMutation } from '../lib/mutations'
 import { useUserList } from '../lib/queries'
 import type { Role, UserSummary } from '../lib/types'
-import { Badge, Dialog, ErrorNote, PageHeader, SelectField, TextField } from '../components/ui'
+import { Badge, Button, Dialog, ErrorNote, PageHeader, SelectField, TableSkeleton, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, useForm } from '../components/common'
 
 const ROLE_HELP: Record<Role, string> = {
@@ -34,13 +34,13 @@ export function UsersPage() {
         title="Usuários"
         subtitle="Quem acessa o CRM e com qual papel"
         actions={
-          <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
+          <Button type="button" variant="primary" onClick={() => setCreating(true)}>
             <Plus size={18} aria-hidden /> Novo usuário
-          </button>
+          </Button>
         }
       />
       {isPending ? (
-        <p className="loading">Carregando usuários…</p>
+        <TableSkeleton rows={4} cols={5} label="Carregando usuários" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os usuários." onRetry={() => void refetch()} />
       ) : (
@@ -68,9 +68,9 @@ export function UsersPage() {
                   </td>
                   <td className="row-actions">
                     {u.isActive && u.id !== user?.id && (
-                      <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDeactivating(u)}>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setDeactivating(u)}>
                         Desativar
-                      </button>
+                      </Button>
                     )}
                   </td>
                 </tr>

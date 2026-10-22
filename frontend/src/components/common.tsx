@@ -1,6 +1,6 @@
 import { useId, useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
-import { Dialog, ErrorNote } from './ui'
+import { PencilSimple, Trash } from '@phosphor-icons/react'
+import { Button, Dialog, ErrorNote, IconButton } from './ui'
 
 /** Abas simples e acessíveis (role=tablist). O conteúdo ativo é renderizado pelo chamador. */
 export function Tabs<T extends string>({
@@ -53,12 +53,10 @@ export function ConfirmDialog({ open, title, description, confirmLabel, danger, 
         {error && <ErrorNote message={error} />}
         <footer className="dialog-footer">
           <span className="spacer" />
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
-            Cancelar
-          </button>
-          <button type="button" className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`} disabled={busy} onClick={onConfirm}>
-            {busy ? 'Aguarde…' : confirmLabel}
-          </button>
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button variant={danger ? 'danger' : 'primary'} loading={busy} onClick={onConfirm}>
+            {confirmLabel}
+          </Button>
         </footer>
       </div>
     </Dialog>
@@ -80,13 +78,13 @@ export const blankToNull = (s: string) => (s.trim() === '' ? null : s.trim())
 export function RowActions({ onEdit, onDelete, label }: { onEdit: () => void; onDelete?: () => void; label: string }) {
   return (
     <span className="row-actions">
-      <button type="button" className="icon-btn" aria-label={`Editar ${label}`} onClick={onEdit}>
-        <Pencil size={16} />
-      </button>
+      <IconButton label={`Editar ${label}`} onClick={onEdit}>
+        <PencilSimple size={16} />
+      </IconButton>
       {onDelete && (
-        <button type="button" className="icon-btn" aria-label={`Excluir ${label}`} onClick={onDelete}>
-          <Trash2 size={16} />
-        </button>
+        <IconButton label={`Excluir ${label}`} onClick={onDelete}>
+          <Trash size={16} />
+        </IconButton>
       )}
     </span>
   )
@@ -96,12 +94,10 @@ export function FormFooter({ pending, submitLabel, onCancel, disabled }: { pendi
   return (
     <footer className="dialog-footer">
       <span className="spacer" />
-      <button type="button" className="btn btn-secondary" onClick={onCancel}>
-        Cancelar
-      </button>
-      <button type="submit" className="btn btn-primary" disabled={pending || disabled}>
-        {pending ? 'Salvando…' : submitLabel}
-      </button>
+      <Button onClick={onCancel}>Cancelar</Button>
+      <Button type="submit" variant="primary" loading={pending} disabled={disabled}>
+        {submitLabel}
+      </Button>
     </footer>
   )
 }

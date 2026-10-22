@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Plus, Wand2 } from 'lucide-react'
+import { MagicWand, Plus, Wallet } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../lib/api'
 import { brl, todayISO } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useFinanceSummary, useLedger, usePayments } from '../lib/queries'
-import { EmptyState, ErrorNote, PageHeader } from '../components/ui'
+import { Button, EmptyState, ErrorNote, PageHeader, StatStripSkeleton, TableSkeleton } from '../components/ui'
 import { Tabs } from '../components/common'
 import { LedgerFormDialog, LedgerTable, PaymentFormDialog, PaymentsTable } from '../components/FinanceParts'
 
@@ -13,11 +13,11 @@ type Tab = 'payments' | 'ledger'
 
 function Metric({ label, value, caption, tone }: { label: string; value: string; caption: string; tone?: 'danger' | 'success' }) {
   return (
-    <section className="stat-card">
+    <div className="stat">
       <h2 className="stat-label">{label}</h2>
       <p className={`stat-value${tone ? ` tone-text-${tone}` : ''}`}>{value}</p>
       <p className="stat-caption">{caption}</p>
-    </section>
+    </div>
   )
 }
 
@@ -52,21 +52,23 @@ export function FinancePage() {
               <input type="month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} aria-label="Mês" />
             </label>
             {isAdmin && (
-              <button type="button" className="btn btn-secondary" disabled={generate.isPending} onClick={() => generate.mutate(undefined)}>
-                <Wand2 size={18} aria-hidden /> Gerar mensalidades
-              </button>
+              <Button type="button" disabled={generate.isPending} onClick={() => generate.mutate(undefined)}>
+                <MagicWand size={18} aria-hidden /> Gerar mensalidades
+              </Button>
             )}
-            <button type="button" className="btn btn-primary" onClick={() => (tab === 'payments' ? setNewPayment(true) : setNewEntry(true))}>
+            <Button type="button" variant="primary" onClick={() => (tab === 'payments' ? setNewPayment(true) : setNewEntry(true))}>
               <Plus size={18} aria-hidden /> {tab === 'payments' ? 'Nova cobrança' : 'Novo lançamento'}
-            </button>
+            </Button>
           </>
         }
       />
 
       {summary.isError ? (
         <ErrorNote message="Não foi possível carregar o resumo." onRetry={() => void summary.refetch()} />
+      ) : summary.isPending ? (
+        <StatStripSkeleton items={5} />
       ) : (
-        <div className="stat-grid">
+        <div className="stat-strip">
           <Metric label="Recebido no mês" value={brl(s?.received)} caption="Cobranças pagas + receitas avulsas realizadas" tone="success" />
           <Metric label="A receber no mês" value={brl(s?.expected)} caption="Vence neste mês e ainda não foi pago" />
           <Metric label="Em atraso" value={brl(s?.overdue)} caption={s ? `${s.overdueCount} cobrança(s) vencida(s), de qualquer mês` : ''} tone={s && s.overdueCount > 0 ? 'danger' : undefined} />
@@ -87,20 +89,40 @@ export function FinancePage() {
 
       {tab === 'payments' ? (
         payments.isPending ? (
-          <p className="loading">Carregando cobranças…</p>
+          <TableSkeleton rows={4} cols={5} label="Carregando cobranças" />
         ) : payments.isError ? (
           <ErrorNote message="Não foi possível carregar as cobranças." onRetry={() => void payments.refetch()} />
         ) : payments.data.items.length === 0 ? (
-          <EmptyState title="Nenhuma cobrança vence neste mês">Use "Gerar mensalidades" para criar as dos clientes ativos ou crie uma cobrança.</EmptyState>
+          <EmptyState
+            icon={Wallet}
+            title="Nenhuma cobrança vence neste mês"
+            action={
+              <Button variant="primary" onClick={() => setNewPayment(true)}>
+                <Plus size={16} aria-hidden /> Nova cobrança
+              </Button>
+            }
+          >
+            As mensalidades dos clientes ativos são geradas todo mês. Você também pode criar uma cobrança avulsa.
+          </EmptyState>
         ) : (
           <PaymentsTable payments={payments.data.items} showClient canManage />
         )
       ) : ledger.isPending ? (
-        <p className="loading">Carregando lançamentos…</p>
+        <TableSkeleton rows={4} cols={5} label="Carregando lançamentos" />
       ) : ledger.isError ? (
         <ErrorNote message="Não foi possível carregar os lançamentos." onRetry={() => void ledger.refetch()} />
       ) : ledger.data.items.length === 0 ? (
-        <EmptyState title="Nenhum lançamento neste mês">Registre receitas avulsas e despesas da agência.</EmptyState>
+        <EmptyState
+          icon={Wallet}
+          title="Nenhum lançamento neste mês"
+          action={
+            <Button variant="primary" onClick={() => setNewEntry(true)}>
+              <Plus size={16} aria-hidden /> Novo lançamento
+            </Button>
+          }
+        >
+          Registre receitas avulsas e despesas da agência.
+        </EmptyState>
       ) : (
         <LedgerTable entries={ledger.data.items} canManage />
       )}

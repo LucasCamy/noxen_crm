@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { Plus } from 'lucide-react'
+import { FilmSlate, Plus } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { CHANNELS, CONTENT_FORMATS, CONTENT_STATUSES, contentFormatLabel, contentStatusInfo } from '../lib/domain'
 import { dateBR } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useContents } from '../lib/queries'
 import type { ContentFormat, ContentItem, ContentStatus } from '../lib/types'
-import { Badge, Dialog, EmptyState, ErrorNote, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, Button, Dialog, EmptyState, ErrorNote, PageHeader, SelectField, TableSkeleton, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 
@@ -39,18 +39,30 @@ export function ContentsPage() {
                 <option key={c}>{c}</option>
               ))}
             </select>
-            <button type="button" className="btn btn-primary" onClick={() => setEditing({ item: null })}>
+            <Button type="button" variant="primary" onClick={() => setEditing({ item: null })}>
               <Plus size={18} aria-hidden /> Novo conteúdo
-            </button>
+            </Button>
           </>
         }
       />
       {isPending ? (
-        <p className="loading">Carregando conteúdos…</p>
+        <TableSkeleton rows={5} cols={6} label="Carregando conteúdos" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os conteúdos." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
-        <EmptyState title="Nenhum conteúdo encontrado">{status || channel ? 'Ajuste os filtros.' : 'Cadastre o primeiro post, roteiro ou anúncio.'}</EmptyState>
+        <EmptyState
+          icon={FilmSlate}
+          title="Nenhum conteúdo encontrado"
+          action={
+            status || channel ? undefined : (
+              <Button variant="primary" onClick={() => setEditing({ item: null })}>
+                <Plus size={16} aria-hidden /> Novo conteúdo
+              </Button>
+            )
+          }
+        >
+          {status || channel ? 'Ajuste os filtros.' : 'Cadastre o primeiro post, roteiro ou anúncio.'}
+        </EmptyState>
       ) : (
         <div className="table-wrap">
           <table className="table">

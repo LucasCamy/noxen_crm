@@ -23,6 +23,12 @@ export function todayISO(now: Date = new Date()): string {
   return `${now.getFullYear()}-${m}-${d}`
 }
 
+/** Soma dias a uma data AAAA-MM-DD (calendário local). */
+export function addDaysISO(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  return todayISO(new Date(y, m - 1, d + days))
+}
+
 /** Follow-up vencido: data anterior a hoje. */
 export function isOverdue(date: string | null | undefined, today: string = todayISO()): boolean {
   return !!date && date.slice(0, 10) < today

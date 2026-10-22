@@ -9,5 +9,6 @@
 | [0005](0005-outbox-rabbitmq-e-cache-redis.md) | Outbox transacional + RabbitMQ; Redis como cache de leitura | Proposta |
 | [0006](0006-cobrancas-e-lancamentos.md) | Cobranças e lançamentos separados; atraso derivado; mensalidade gerada pelo Worker | Proposta |
 | [0007](0007-migracoes-em-conteineres.md) | Migrations aplicadas por um serviço `migrate` (bundle do EF Core) | Proposta |
+| [0008](0008-sistema-de-design-do-frontend.md) | Sistema de design: tokens, tema claro/escuro, kit de UI, movimento, estados | Proposta |
 
 "Aceita" = escolha confirmada pelo responsável do projeto. "Proposta" = já implementada pelo agente seguindo o pedido, aguardando confirmação explícita. Aceita não implica implantada.

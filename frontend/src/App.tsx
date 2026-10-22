@@ -1,19 +1,22 @@
+import { lazy } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import { Layout } from './components/Layout'
-import { ClientDetailPage } from './pages/ClientDetailPage'
-import { ClientsPage } from './pages/ClientsPage'
-import { DashboardPage } from './pages/DashboardPage'
-import { ContentsPage } from './pages/ContentsPage'
-import { FinancePage } from './pages/FinancePage'
-import { IdeasPage } from './pages/IdeasPage'
-import { KnowledgePage } from './pages/KnowledgePage'
-import { LeadsPage } from './pages/LeadsPage'
 import { LoginPage } from './pages/LoginPage'
-import { PlanningPage } from './pages/PlanningPage'
-import { ScriptsPage } from './pages/ScriptsPage'
-import { StudioPage } from './pages/StudioPage'
-import { UsersPage } from './pages/UsersPage'
+
+// Cada tela vira um chunk próprio: o painel abre sem baixar Finanças, Studio etc.
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
+const LeadsPage = lazy(() => import('./pages/LeadsPage').then((m) => ({ default: m.LeadsPage })))
+const ClientsPage = lazy(() => import('./pages/ClientsPage').then((m) => ({ default: m.ClientsPage })))
+const ClientDetailPage = lazy(() => import('./pages/ClientDetailPage').then((m) => ({ default: m.ClientDetailPage })))
+const FinancePage = lazy(() => import('./pages/FinancePage').then((m) => ({ default: m.FinancePage })))
+const PlanningPage = lazy(() => import('./pages/PlanningPage').then((m) => ({ default: m.PlanningPage })))
+const ContentsPage = lazy(() => import('./pages/ContentsPage').then((m) => ({ default: m.ContentsPage })))
+const IdeasPage = lazy(() => import('./pages/IdeasPage').then((m) => ({ default: m.IdeasPage })))
+const StudioPage = lazy(() => import('./pages/StudioPage').then((m) => ({ default: m.StudioPage })))
+const ScriptsPage = lazy(() => import('./pages/ScriptsPage').then((m) => ({ default: m.ScriptsPage })))
+const KnowledgePage = lazy(() => import('./pages/KnowledgePage').then((m) => ({ default: m.KnowledgePage })))
+const UsersPage = lazy(() => import('./pages/UsersPage').then((m) => ({ default: m.UsersPage })))
 
 function RequireAuth() {
   const { status } = useAuth()

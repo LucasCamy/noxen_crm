@@ -4,7 +4,7 @@ import { brl, dateBR, parseMoney, todayISO } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useClients } from '../lib/queries'
 import type { LedgerEntry, LedgerInput, LedgerKind, Payment, PaymentInput, PaymentKind } from '../lib/types'
-import { Badge, Dialog, ErrorNote, SelectField, TextField } from './ui'
+import { Badge, Dialog, ErrorNote, SelectField, TextField, Button } from './ui'
 import { ConfirmDialog, FormFooter, blankToNull, useForm } from './common'
 import type { Tone } from '../lib/domain'
 
@@ -70,12 +70,12 @@ export function PaymentsTable({ payments, showClient, canManage }: { payments: P
                     <td className="row-actions">
                       {p.status === 'Pendente' && (
                         <>
-                          <button type="button" className="btn btn-secondary btn-sm" onClick={() => setPaying(p)}>
+                          <Button type="button" size="sm" onClick={() => setPaying(p)}>
                             Registrar pagamento
-                          </button>
-                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setCancelling(p)}>
+                          </Button>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => setCancelling(p)}>
                             Cancelar
-                          </button>
+                          </Button>
                         </>
                       )}
                     </td>
@@ -262,12 +262,12 @@ export function LedgerTable({ entries, canManage }: { entries: LedgerEntry[]; ca
                     <td className="row-actions">
                       {e.status === 'Previsto' && (
                         <>
-                          <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSettling(e)}>
+                          <Button type="button" size="sm" onClick={() => setSettling(e)}>
                             {e.kind === 'Receita' ? 'Registrar recebimento' : 'Registrar pagamento'}
-                          </button>
-                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setCancelling(e)}>
+                          </Button>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => setCancelling(e)}>
                             Cancelar
-                          </button>
+                          </Button>
                         </>
                       )}
                     </td>

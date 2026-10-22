@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
 import {
   DndContext,
@@ -12,7 +13,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
-import { CalendarDays, Clock, DollarSign, Plus, Search } from 'lucide-react'
+import { CalendarDots, Clock, Plus } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../lib/api'
 import { STAGES, moveError, stageInfo } from '../lib/domain'
@@ -20,7 +21,7 @@ import { brl, dateBR, isOverdue } from '../lib/format'
 import { fetchLeads, leadsKey, useUsers } from '../lib/queries'
 import { useDebounced } from '../lib/useDebounced'
 import type { Lead, LeadStage, UserLookup } from '../lib/types'
-import { Avatar, Badge, ErrorNote, PageHeader } from '../components/ui'
+import { Avatar, BoardSkeleton, Button, ErrorNote, PageHeader, SearchInput } from '../components/ui'
 import { useToast } from '../components/Toast'
 import { ConvertDialog, LeadDialog, LostDialog } from '../components/LeadDialogs'
 
@@ -36,13 +37,13 @@ function LeadCardView({ lead, owner, overlay }: { lead: Lead; owner?: UserLookup
       {place && <span className="lead-meta">{place}</span>}
       {lead.estimatedValue != null && (
         <span className="lead-value">
-          <DollarSign size={14} aria-hidden /> {brl(lead.estimatedValue)}
+          {brl(lead.estimatedValue)}
         </span>
       )}
       <div className="lead-foot">
         {lead.nextStepDate || lead.nextStep ? (
           <span className={`lead-next${overdue ? ' overdue' : ''}`}>
-            {overdue ? <Clock size={14} aria-hidden /> : <CalendarDays size={14} aria-hidden />}
+            {overdue ? <Clock size={14} aria-hidden /> : <CalendarDots size={14} aria-hidden />}
             <span>
               {lead.nextStep ?? 'Próximo passo'}
               {lead.nextStepDate ? ` · ${dateBR(lead.nextStepDate).slice(0, 5)}` : ''}
@@ -96,9 +97,9 @@ interface ColumnProps {
 function Column({ stage, leads, total, loading, failed, retry, users, canDrag, onOpen }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.key })
   return (
-    <section ref={setNodeRef} className={`column${isOver ? ' over' : ''}`} aria-label={`${stage.label}, ${total} leads`}>
+    <section ref={setNodeRef} className={`column tone-${stage.tone}${isOver ? ' over' : ''}`} aria-label={`${stage.label}, ${total} leads`}>
       <header className="column-head">
-        <Badge tone={stage.tone}>{stage.label}</Badge>
+        <h3 className="column-name">{stage.label}</h3>
         <span className="column-count">{total}</span>
       </header>
       <div className="column-body">
@@ -107,7 +108,7 @@ function Column({ stage, leads, total, loading, failed, retry, users, canDrag, o
         ) : loading ? (
           <p className="muted small">Carregando…</p>
         ) : leads.length === 0 ? (
-          <p className="column-empty">Nenhum lead</p>
+          <p className="column-empty">{canDrag ? 'Solte um lead aqui' : 'Nenhum lead'}</p>
         ) : (
           leads.map((lead) => (
             <DraggableLead key={lead.id} lead={lead} owner={users.find((u) => u.id === lead.ownerId)} canDrag={canDrag} onOpen={onOpen} />
@@ -143,6 +144,21 @@ export function LeadsPage() {
     })),
   })
   const totalLeads = results.reduce((sum, r) => sum + (r.data?.total ?? 0), 0)
+  const allPending = results.every((r) => r.isPending)
+
+  // Atalhos da paleta de comandos: "Novo lead" e abrir um lead encontrado na busca.
+  const location = useLocation()
+  const navigate = useNavigate()
+  const routeState = location.state as { action?: string; leadId?: string } | null
+  useEffect(() => {
+    if (!routeState) return
+    if (routeState.action === 'new' && canWrite) setDialog({ lead: null })
+    if (routeState.leadId) {
+      api.get<Lead>(`/api/leads/${routeState.leadId}`).then((lead) => setDialog({ lead })).catch(() => toast('Não foi possível abrir o lead.', 'error'))
+    }
+    navigate(location.pathname, { replace: true, state: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeState?.action, routeState?.leadId])
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor))
 
@@ -208,23 +224,23 @@ export function LeadsPage() {
         subtitle={`${totalLeads} ${totalLeads === 1 ? 'lead' : 'leads'} no funil de prospecção`}
         actions={
           <>
-            <label className="search">
-              <Search size={18} aria-hidden />
-              <input type="search" placeholder="Buscar empresa, contato ou WhatsApp" value={searchText} onChange={(e) => setSearchText(e.target.value)} aria-label="Buscar leads" />
-            </label>
+            <SearchInput label="Buscar leads" placeholder="Buscar empresa, contato ou WhatsApp" value={searchText} onChange={(e) => setSearchText(e.target.value)} />
             <label className="check">
               <input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} /> Só meus leads
             </label>
             {canWrite && (
-              <button type="button" className="btn btn-primary" onClick={() => setDialog({ lead: null })}>
+              <Button type="button" variant="primary" onClick={() => setDialog({ lead: null })}>
                 <Plus size={18} aria-hidden /> Novo lead
-              </button>
+              </Button>
             )}
           </>
         }
       />
 
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragging(null)} accessibility={accessibility}>
+        {allPending ? (
+          <BoardSkeleton columns={STAGES.length} />
+        ) : (
         <div className="board" role="group" aria-label="Funil de leads">
           {STAGES.map((stage, i) => {
             const r = results[i]
@@ -244,6 +260,7 @@ export function LeadsPage() {
             )
           })}
         </div>
+        )}
         <DragOverlay>{dragging && <LeadCardView lead={dragging} owner={users.find((u) => u.id === dragging.ownerId)} overlay />}</DragOverlay>
       </DndContext>
 

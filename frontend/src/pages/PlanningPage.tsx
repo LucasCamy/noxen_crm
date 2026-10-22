@@ -1,6 +1,6 @@
-import { useMemo, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { CalendarBlank, ListChecks, Plus } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../lib/api'
 import { PRIORITIES, TODO_STATUSES, priorityInfo, type Tone } from '../lib/domain'
@@ -8,7 +8,7 @@ import { brl, dateBR, todayISO } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { usePlanning, useTasks, useUsers } from '../lib/queries'
 import type { PlanningItem, Priority, Task, TodoStatus } from '../lib/types'
-import { Badge, Dialog, EmptyState, ErrorNote, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, Button, Dialog, EmptyState, ErrorNote, ListSkeleton, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, Tabs, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 
@@ -22,6 +22,20 @@ const addDays = (iso: string, n: number) => {
 
 export function PlanningPage() {
   const [tab, setTab] = useState<Tab>('agenda')
+  const [newTaskSignal, setNewTaskSignal] = useState(0)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Atalho "Nova tarefa" da paleta de comandos.
+  const action = (location.state as { action?: string } | null)?.action
+  useEffect(() => {
+    if (action === 'new-task') {
+      setTab('tasks')
+      setNewTaskSignal((n) => n + 1)
+      navigate(location.pathname, { replace: true, state: null })
+    }
+  }, [action, navigate, location.pathname])
+
   return (
     <>
       <PageHeader title="Planejamento" subtitle="Agenda do que vence nos próximos dias e as tarefas da equipe" />
@@ -34,7 +48,7 @@ export function PlanningPage() {
           { key: 'tasks', label: 'Tarefas' },
         ]}
       />
-      {tab === 'agenda' ? <Agenda /> : <Tasks />}
+      {tab === 'agenda' ? <Agenda /> : <Tasks newSignal={newTaskSignal} />}
     </>
   )
 }
@@ -64,11 +78,11 @@ function Agenda() {
         </label>
       </div>
       {isPending ? (
-        <p className="loading">Carregando agenda…</p>
+        <ListSkeleton rows={5} label="Carregando agenda" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar a agenda." onRetry={() => void refetch()} />
       ) : groups.overdue.length === 0 && groups.days.length === 0 ? (
-        <EmptyState title="Nada na agenda">Sem tarefas, follow-ups, reuniões, vencimentos ou publicações neste período.</EmptyState>
+        <EmptyState icon={CalendarBlank} title="Nada na agenda">Sem tarefas, follow-ups, reuniões, vencimentos ou publicações neste período.</EmptyState>
       ) : (
         <div className="agenda">
           {groups.overdue.length > 0 && <AgendaGroup title="Atrasados" danger items={groups.overdue} />}
@@ -103,13 +117,17 @@ function AgendaGroup({ title, items, danger }: { title: string; items: PlanningI
 
 // ---------------------------------------------------------------- tarefas
 
-function Tasks() {
+function Tasks({ newSignal }: { newSignal: number }) {
   const { user } = useAuth()
   const [onlyOpen, setOnlyOpen] = useState(true)
   const [editing, setEditing] = useState<{ task: Task | null } | null>(null)
   const [deleting, setDeleting] = useState<Task | null>(null)
   const { data, isPending, isError, refetch } = useTasks({ open: onlyOpen || undefined })
   const users = useUsers().data ?? []
+
+  useEffect(() => {
+    if (newSignal > 0) setEditing({ task: null })
+  }, [newSignal])
 
   const toggle = useCrmMutation(
     (t: Task) => api.post<Task>(`/api/tasks/${t.id}/status`, { status: t.status === 'Concluida' ? 'Aberta' : 'Concluida', version: t.version }),
@@ -124,16 +142,26 @@ function Tasks() {
           <input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} /> Só abertas
         </label>
         <span className="spacer" />
-        <button type="button" className="btn btn-primary" onClick={() => setEditing({ task: null })}>
+        <Button type="button" variant="primary" onClick={() => setEditing({ task: null })}>
           <Plus size={18} aria-hidden /> Nova tarefa
-        </button>
+        </Button>
       </div>
       {isPending ? (
-        <p className="loading">Carregando tarefas…</p>
+        <ListSkeleton rows={5} label="Carregando tarefas" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as tarefas." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
-        <EmptyState title="Nenhuma tarefa">Crie tarefas para a equipe e acompanhe os prazos.</EmptyState>
+        <EmptyState
+          icon={ListChecks}
+          title="Nenhuma tarefa"
+          action={
+            <Button variant="primary" onClick={() => setEditing({ task: null })}>
+              <Plus size={16} aria-hidden /> Nova tarefa
+            </Button>
+          }
+        >
+          Crie tarefas para a equipe e acompanhe os prazos.
+        </EmptyState>
       ) : (
         <ul className="task-list">
           {data.map((t) => {

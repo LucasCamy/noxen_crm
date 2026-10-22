@@ -1,97 +1,240 @@
 import { Link } from 'react-router-dom'
-import { Clock, DollarSign, Funnel, Target, type LucideIcon } from 'lucide-react'
-import { useDashboard } from '../lib/queries'
-import { brl, dateBR, daysUntil } from '../lib/format'
-import { CLIENT_STATUSES, STAGES } from '../lib/domain'
-import { Badge, ErrorNote, PageHeader } from '../components/ui'
-import type { ReactNode } from 'react'
+import { ArrowRight, CheckCircle } from '@phosphor-icons/react'
+import { useDashboard, usePlanning } from '../lib/queries'
+import { addDaysISO, brl, dateBR, daysUntil, todayISO } from '../lib/format'
+import { CLIENT_STATUSES, STAGES, type Tone } from '../lib/domain'
+import { Badge, EmptyState, ErrorNote, PageHeader, Skeleton } from '../components/ui'
+import type { PlanningItem } from '../lib/types'
 
-function StatCard({ icon: Icon, label, value, children }: { icon: LucideIcon; label: string; value: string; children?: ReactNode }) {
+const KIND_TONE: Record<string, Tone> = { Tarefa: 'brand', 'Follow-up': 'info', Reunião: 'teal', Vencimento: 'warning', Conteúdo: 'neutral' }
+
+function DashboardSkeleton() {
   return (
-    <section className="stat-card">
-      <div className="stat-head">
-        <span className="stat-chip" aria-hidden>
-          <Icon size={18} />
-        </span>
-        <h2>{label}</h2>
+    <div className="dash" role="status" aria-live="polite" aria-label="Carregando painel">
+      <div className="module goal" aria-hidden>
+        <div className="goal-main">
+          <Skeleton h={14} w={180} />
+          <Skeleton h={52} w={140} r={8} />
+          <Skeleton h={8} />
+          <Skeleton h={12} w={220} />
+        </div>
+        <div className="goal-side">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="stat">
+              <Skeleton h={12} w={100} />
+              <Skeleton h={22} w={110} r={6} />
+              <Skeleton h={12} w={160} />
+            </div>
+          ))}
+        </div>
       </div>
-      <p className="stat-value">{value}</p>
-      {children}
-    </section>
+      <div className="dash-cols" aria-hidden>
+        <div className="module">
+          <div className="module-body skeleton-stack">
+            {Array.from({ length: 7 }, (_, i) => (
+              <Skeleton key={i} h={12} w={`${40 + ((i * 17) % 55)}%`} />
+            ))}
+          </div>
+        </div>
+        <div className="module">
+          <div className="module-body skeleton-stack">
+            {Array.from({ length: 5 }, (_, i) => (
+              <Skeleton key={i} h={32} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TodayList({ items }: { items: PlanningItem[] }) {
+  if (items.length === 0)
+    return (
+      <EmptyState icon={CheckCircle} title="Tudo em dia">
+        Nenhum follow-up, tarefa ou vencimento para os próximos 7 dias.
+      </EmptyState>
+    )
+  return (
+    <ul className="today">
+      {items.map((i, idx) => (
+        <li key={`${i.kind}-${i.title}-${idx}`}>
+          <Badge tone={i.overdue ? 'danger' : (KIND_TONE[i.kind] ?? 'neutral')}>{i.overdue ? 'Atrasado' : i.kind}</Badge>
+          <Link to={i.link}>{i.title}</Link>
+          <span className="meta">
+            {[i.subtitle, i.amount !== null ? brl(i.amount) : null, dateBR(i.date)].filter(Boolean).join(' · ')}
+          </span>
+        </li>
+      ))}
+    </ul>
   )
 }
 
 export function DashboardPage() {
   const { data, error, isPending, refetch } = useDashboard()
+  const today = todayISO()
+  const agenda = usePlanning(today, addDaysISO(today, 7))
 
-  if (isPending) return <p className="loading">Carregando painel…</p>
+  if (isPending)
+    return (
+      <>
+        <PageHeader title="Painel" subtitle="Carregando a situação da carteira…" />
+        <DashboardSkeleton />
+      </>
+    )
   if (error || !data) return <ErrorNote message="Não foi possível carregar o painel." onRetry={() => void refetch()} />
 
-  const progress = Math.min(100, Math.round((data.activeClients / Math.max(data.targetClients, 1)) * 100))
+  const target = Math.max(data.targetClients, 1)
   const remaining = Math.max(data.targetClients - data.activeClients, 0)
   const days = daysUntil(data.deadline)
+  const openStages = STAGES.filter((s) => s.key !== 'Fechado' && s.key !== 'Perdido')
   const maxStage = Math.max(1, ...STAGES.map((s) => data.leadsByStage[s.key]))
+  const clientsTotal = CLIENT_STATUSES.reduce((sum, s) => sum + data.clientsByStatus[s.key], 0)
+  const todayItems = [...(agenda.data ?? [])].sort((a, b) => Number(b.overdue) - Number(a.overdue) || a.date.localeCompare(b.date)).slice(0, 8)
 
   return (
     <>
       <PageHeader title="Painel" subtitle={`Meta: ${data.targetClients} clientes ativos até ${dateBR(data.deadline)}`} />
 
-      <div className="stat-grid">
-        <StatCard icon={Target} label="Clientes ativos" value={`${data.activeClients} / ${data.targetClients}`}>
-          <div className="progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Progresso da meta">
-            <span style={{ width: `${progress}%` }} />
+      <div className="dash">
+        <section className="module goal" aria-labelledby="goal-title">
+          <div className="goal-main">
+            <h2 className="module-title" id="goal-title">
+              Clientes ativos
+            </h2>
+            <div className="goal-figure">
+              <span className="goal-value">{data.activeClients}</span>
+              <span className="goal-of">de {data.targetClients}</span>
+            </div>
+            {data.targetClients <= 24 ? (
+              <div className="segments" role="img" aria-label={`${data.activeClients} de ${data.targetClients} clientes ativos`}>
+                {Array.from({ length: data.targetClients }, (_, i) => (
+                  <i key={i} className={i < data.activeClients ? 'on' : ''} />
+                ))}
+              </div>
+            ) : (
+              <div className="bar" role="img" aria-label={`${data.activeClients} de ${data.targetClients} clientes ativos`}>
+                <i style={{ ['--v' as string]: Math.min(1, data.activeClients / target) }} />
+              </div>
+            )}
+            <p className="stat-caption">
+              {remaining === 0
+                ? 'Meta atingida.'
+                : `Faltam ${remaining} ${remaining === 1 ? 'cliente' : 'clientes'} · ${days >= 0 ? `${days} ${days === 1 ? 'dia' : 'dias'} até o prazo` : `prazo vencido há ${-days} dias`}`}
+            </p>
           </div>
-          <p className="stat-caption">
-            {remaining === 0
-              ? 'Meta atingida'
-              : `Faltam ${remaining} · ${days >= 0 ? `${days} dias até o prazo` : `prazo passou há ${-days} dias`}`}
-          </p>
-        </StatCard>
 
-        <StatCard icon={DollarSign} label="MRR" value={brl(data.mrr)}>
-          <p className="stat-caption">Soma das mensalidades dos clientes ativos</p>
-        </StatCard>
-
-        <StatCard icon={Funnel} label="Leads em aberto" value={String(data.openLeads)}>
-          <p className="stat-caption">Pipeline estimado: {brl(data.openPipelineValue)}</p>
-        </StatCard>
-
-        <StatCard icon={Clock} label="Follow-ups vencidos" value={String(data.followUpsDue)}>
-          <p className="stat-caption">
-            {data.followUpsDue > 0 ? <Link to="/leads">Ver no funil</Link> : 'Nenhum follow-up atrasado'}
-          </p>
-        </StatCard>
-      </div>
-
-      <div className="panel-grid">
-        <section className="panel">
-          <h2>Funil de leads</h2>
-          <ul className="funnel">
-            {STAGES.map((s) => (
-              <li key={s.key}>
-                <span className="funnel-label">{s.label}</span>
-                <span className="funnel-bar" aria-hidden>
-                  <span className={`funnel-fill tone-${s.tone}`} style={{ width: `${(data.leadsByStage[s.key] / maxStage) * 100}%` }} />
-                </span>
-                <strong className="funnel-count">{data.leadsByStage[s.key]}</strong>
-              </li>
-            ))}
-          </ul>
+          <div className="goal-side">
+            <div className="stat">
+              <span className="stat-label">Receita recorrente (MRR)</span>
+              <span className="stat-value">{brl(data.mrr)}</span>
+              <span className="stat-caption">Mensalidades dos clientes ativos</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Leads em aberto</span>
+              <span className="stat-value">{data.openLeads}</span>
+              <span className="stat-caption">Pipeline estimado de {brl(data.openPipelineValue)}</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Follow-ups vencidos</span>
+              <span className={`stat-value${data.followUpsDue > 0 ? ' tone-text-danger' : ''}`}>{data.followUpsDue}</span>
+              <span className="stat-caption">{data.followUpsDue > 0 ? <Link to="/leads">Ver no funil</Link> : 'Nenhum atrasado'}</span>
+            </div>
+          </div>
         </section>
 
-        <section className="panel">
-          <h2>Carteira por status</h2>
-          <ul className="status-list">
-            {CLIENT_STATUSES.map((s) => (
-              <li key={s.key}>
-                <Badge tone={s.tone}>{s.label}</Badge>
-                <strong>{data.clientsByStatus[s.key]}</strong>
-              </li>
-            ))}
-          </ul>
-          <p className="muted small">Atualizado em {new Date(data.generatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
-        </section>
+        <div className="dash-cols">
+          <div className="dash-stack">
+            <section className="module" aria-labelledby="funnel-title">
+              <div className="module-head">
+                <h2 className="module-title" id="funnel-title">
+                  Funil de leads
+                </h2>
+                <Link to="/leads" className="small">
+                  Abrir funil
+                </Link>
+              </div>
+              <div className="module-body">
+                <ul className="funnel">
+                  {STAGES.map((s) => {
+                    const idx = openStages.findIndex((o) => o.key === s.key)
+                    const t = idx >= 0 ? 35 + (65 * idx) / Math.max(openStages.length - 1, 1) : 100
+                    const cls = s.key === 'Fechado' ? 'bar bar-success' : s.key === 'Perdido' ? 'bar bar-danger' : 'bar'
+                    return (
+                      <li key={s.key} className="funnel-row">
+                        <span className="funnel-label">{s.label}</span>
+                        <span className={cls} aria-hidden>
+                          <i style={{ ['--v' as string]: data.leadsByStage[s.key] / maxStage, ['--t' as string]: `${t}%` }} />
+                        </span>
+                        <span className="funnel-count">{data.leadsByStage[s.key]}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            </section>
+
+            <section className="module" aria-labelledby="portfolio-title">
+              <div className="module-head">
+                <h2 className="module-title" id="portfolio-title">
+                  Carteira por status
+                </h2>
+                <Link to="/clients" className="small">
+                  Ver clientes
+                </Link>
+              </div>
+              <div className="module-body">
+                {clientsTotal === 0 ? (
+                  <p className="muted">Nenhum cliente ainda. Converta um lead fechado ou cadastre o primeiro.</p>
+                ) : (
+                  <>
+                    <div className="split-bar" role="img" aria-label="Distribuição dos clientes por status">
+                      {CLIENT_STATUSES.filter((s) => data.clientsByStatus[s.key] > 0).map((s) => (
+                        <i key={s.key} className={`tone-${s.tone}`} style={{ flex: data.clientsByStatus[s.key] }} />
+                      ))}
+                    </div>
+                    <ul className="legend">
+                      {CLIENT_STATUSES.map((s) => (
+                        <li key={s.key}>
+                          <Badge tone={s.tone}>{s.label}</Badge>
+                          <strong>{data.clientsByStatus[s.key]}</strong>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            </section>
+          </div>
+
+          <section className="module" aria-labelledby="today-title">
+            <div className="module-head">
+              <h2 className="module-title" id="today-title">
+                Para os próximos 7 dias
+              </h2>
+              <Link to="/planning" className="small">
+                Agenda completa <ArrowRight size={12} aria-hidden style={{ verticalAlign: '-1px' }} />
+              </Link>
+            </div>
+            <div className="module-body">
+              {agenda.isPending ? (
+                <div className="skeleton-stack" role="status" aria-live="polite" aria-label="Carregando agenda">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Skeleton key={i} h={34} />
+                  ))}
+                </div>
+              ) : agenda.isError ? (
+                <ErrorNote message="Não foi possível carregar a agenda." onRetry={() => void agenda.refetch()} />
+              ) : (
+                <TodayList items={todayItems} />
+              )}
+            </div>
+          </section>
+        </div>
       </div>
+      <p className="muted small" style={{ marginTop: 16 }}>
+        Atualizado às {new Date(data.generatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+      </p>
     </>
   )
 }

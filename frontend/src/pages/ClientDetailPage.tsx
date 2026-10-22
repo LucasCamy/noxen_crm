@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, MessageCircle } from 'lucide-react'
+import { ArrowLeft, WhatsappLogo } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api, ApiError } from '../lib/api'
 import { CLIENT_STATUSES, clientStatusInfo } from '../lib/domain'
 import { brl, dateBR, whatsappUrl } from '../lib/format'
 import { useClient, useUsers } from '../lib/queries'
 import type { Client, ClientStatus } from '../lib/types'
-import { Badge, Dialog, ErrorNote, PageHeader } from '../components/ui'
+import { Badge, Button, ButtonLink, Dialog, ErrorNote, PageHeader, Skeleton } from '../components/ui'
 import { ClientForm } from '../components/ClientForm'
 import { ClientPanels } from '../components/ClientPanels'
 import { useToast } from '../components/Toast'
@@ -39,7 +39,27 @@ export function ClientDetailPage() {
     },
   })
 
-  if (isPending) return <p className="loading">Carregando cliente…</p>
+  if (isPending)
+    return (
+      <div role="status" aria-live="polite" aria-label="Carregando cliente">
+        <Skeleton h={14} w={80} />
+        <div style={{ margin: '14px 0 24px' }}>
+          <Skeleton h={28} w={280} r={6} />
+        </div>
+        <div className="detail-grid" aria-hidden>
+          <div className="panel skeleton-stack">
+            {Array.from({ length: 8 }, (_, i) => (
+              <Skeleton key={i} h={36} r={8} />
+            ))}
+          </div>
+          <div className="panel skeleton-stack">
+            {Array.from({ length: 6 }, (_, i) => (
+              <Skeleton key={i} h={16} w={`${60 + ((i * 9) % 35)}%`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
   if (error || !client) {
     const notFound = error instanceof ApiError && error.status === 404
     return (
@@ -121,9 +141,9 @@ export function ClientDetailPage() {
               </div>
             </dl>
             {wa && (
-              <a className="btn btn-secondary btn-block" href={wa} target="_blank" rel="noreferrer">
-                <MessageCircle size={16} aria-hidden /> Falar no WhatsApp
-              </a>
+              <ButtonLink block href={wa} target="_blank" rel="noreferrer">
+                <WhatsappLogo size={16} aria-hidden /> Falar no WhatsApp
+              </ButtonLink>
             )}
           </section>
         </aside>
@@ -135,19 +155,19 @@ export function ClientDetailPage() {
         <div className="dialog-form">
           <footer className="dialog-footer">
             <span className="spacer" />
-            <button type="button" className="btn btn-secondary" onClick={() => setConfirmClose(false)}>
+            <Button type="button" onClick={() => setConfirmClose(false)}>
               Cancelar
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={() => {
-                setConfirmClose(false)
-                changeStatus.mutate({ target: 'Encerrado', version: client.version })
-              }}
-            >
+            </Button>
+            <Button
+ type="button"
+ variant="danger"
+ onClick={() => {
+ setConfirmClose(false)
+ changeStatus.mutate({ target: 'Encerrado', version: client.version })
+ }}
+>
               Encerrar cliente
-            </button>
+            </Button>
           </footer>
         </div>
       </Dialog>

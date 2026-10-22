@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { ExternalLink, Plus } from 'lucide-react'
+import { ArrowSquareOut, LinkSimple, Palette, Plus } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { STUDIO_KINDS, STUDIO_STATUSES, studioKindLabel } from '../lib/domain'
 import { dateBR, safeUrl } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useBrandKits, useReferences, useStudioProjects } from '../lib/queries'
 import type { BrandKit, ReferenceLink, StudioKind, StudioProject, StudioStatus } from '../lib/types'
-import { Badge, Dialog, EmptyState, ErrorNote, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, BoardSkeleton, Button, CardGridSkeleton, Dialog, EmptyState, ErrorNote, ListSkeleton, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, Tabs, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 import { useDebounced } from '../lib/useDebounced'
@@ -40,9 +40,9 @@ function SectionBar({ label, onAdd }: { label: string; onAdd: () => void }) {
   return (
     <div className="toolbar">
       <span className="spacer" />
-      <button type="button" className="btn btn-primary" onClick={onAdd}>
+      <Button type="button" variant="primary" onClick={onAdd}>
         <Plus size={18} aria-hidden /> {label}
-      </button>
+      </Button>
     </div>
   )
 }
@@ -59,7 +59,7 @@ function Projects() {
     <>
       <SectionBar label="Novo projeto" onAdd={() => setEditing({ project: null })} />
       {isPending ? (
-        <p className="loading">Carregando projetos…</p>
+        <BoardSkeleton columns={5} />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os projetos." onRetry={() => void refetch()} />
       ) : (
@@ -192,11 +192,11 @@ function Kits() {
     <>
       <SectionBar label="Novo kit" onAdd={() => setEditing({ kit: null })} />
       {isPending ? (
-        <p className="loading">Carregando kits…</p>
+        <CardGridSkeleton cards={3} />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os kits." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
-        <EmptyState title="Nenhum kit de marca">Guarde cores, fontes e tom de voz de cada cliente para criar com consistência.</EmptyState>
+        <EmptyState icon={Palette} title="Nenhum kit de marca">Guarde cores, fontes e tom de voz de cada cliente para criar com consistência.</EmptyState>
       ) : (
         <div className="idea-grid">
           {data.map((k) => {
@@ -222,7 +222,7 @@ function Kits() {
                 {k.elements && <p className="pre small">{k.elements}</p>}
                 {logo && (
                   <a className="small" href={logo} target="_blank" rel="noopener noreferrer">
-                    Ver logo <ExternalLink size={12} aria-hidden />
+                    Ver logo <ArrowSquareOut size={12} aria-hidden />
                   </a>
                 )}
               </article>
@@ -304,16 +304,16 @@ function References() {
       <div className="toolbar">
         <input className="select-inline" type="search" placeholder="Filtrar por tag" aria-label="Filtrar por tag" value={tagText} onChange={(e) => setTagText(e.target.value)} />
         <span className="spacer" />
-        <button type="button" className="btn btn-primary" onClick={() => setEditing({ ref: null })}>
+        <Button type="button" variant="primary" onClick={() => setEditing({ ref: null })}>
           <Plus size={18} aria-hidden /> Nova referência
-        </button>
+        </Button>
       </div>
       {isPending ? (
-        <p className="loading">Carregando referências…</p>
+        <ListSkeleton rows={4} label="Carregando referências" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as referências." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
-        <EmptyState title="Nenhuma referência">{tag ? 'Nenhuma referência com essa tag.' : 'Salve links de inspiração (anúncios, perfis, moodboards).'}</EmptyState>
+        <EmptyState icon={LinkSimple} title="Nenhuma referência">{tag ? 'Nenhuma referência com essa tag.' : 'Salve links de inspiração (anúncios, perfis, moodboards).'}</EmptyState>
       ) : (
         <ul className="timeline">
           {data.map((r) => {
@@ -323,7 +323,7 @@ function References() {
                 <div className="timeline-head">
                   {url ? (
                     <a href={url} target="_blank" rel="noopener noreferrer">
-                      <strong>{r.title}</strong> <ExternalLink size={14} aria-hidden />
+                      <strong>{r.title}</strong> <ArrowSquareOut size={14} aria-hidden />
                     </a>
                   ) : (
                     <strong>{r.title}</strong>

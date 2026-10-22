@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { brl, dateBR, dateTimeBR, fromDateTimeLocal, parseMoney, todayISO, toDateTimeLocal } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useCampaigns, useMeetings, usePayments, useResults } from '../lib/queries'
 import type { Campaign, CampaignStatus, Meeting, MonthlyResult } from '../lib/types'
 import type { Tone } from '../lib/domain'
-import { Badge, Dialog, EmptyState, ErrorNote, SelectField, TextAreaField, TextField } from './ui'
+import { Badge, Dialog, EmptyState, ErrorNote, SelectField, TextAreaField, TextField, Button } from './ui'
 import { ConfirmDialog, FormFooter, RowActions, Tabs, blankToNull, useForm } from './common'
 import { PaymentFormDialog, PaymentsTable } from './FinanceParts'
 
@@ -35,9 +35,9 @@ function PanelHead({ title, action }: { title: string; action: () => void }) {
   return (
     <div className="panel-head">
       <h2>{title}</h2>
-      <button type="button" className="btn btn-primary btn-sm" onClick={action}>
+      <Button type="button" variant="primary" size="sm" onClick={action}>
         <Plus size={16} aria-hidden /> Adicionar
-      </button>
+      </Button>
     </div>
   )
 }

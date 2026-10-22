@@ -15,7 +15,7 @@ Este projeto segue o [Agent Project Kit](reference/agent-project-kit/README.md),
 | Banco | PostgreSQL 17 | implementado |
 | Cache | Redis 7 (`IDistributedCache`) | implementado |
 | Fila | RabbitMQ 4 (exchange topic + dead-letter) | implementado |
-| Frontend | React 19 + Vite 8 + TypeScript, React Router, TanStack Query, dnd-kit, lucide-react, CSS puro com tokens | implementado: login, painel, leads (kanban), clientes, financeiro, planejamento, conteúdos, ideias, scripts, base, estúdio e usuários |
+| Frontend | React 19 + Vite 8 + TypeScript, React Router, TanStack Query, dnd-kit, Phosphor Icons, Geist, CSS puro com tokens e tema claro/escuro (ADR-0008) | implementado: login, painel, leads (kanban), clientes, financeiro, planejamento, conteúdos, ideias, scripts, base, estúdio e usuários |
 
 ## Organização
 
@@ -24,7 +24,7 @@ Este projeto segue o [Agent Project Kit](reference/agent-project-kit/README.md),
 - `backend/src/Noxen.Crm.Api`: endpoints por funcionalidade (`Auth`, `Leads`, `Clients`, `Dashboard`, `Finance`, `Workspace`, `Studio`), DTOs e tratamento de erros.
 - `backend/src/Noxen.Crm.Worker`: host que roda o dispatcher da outbox, os consumidores e o `MaintenanceService` (gera as mensalidades do mês e limpa a outbox antiga).
 - `backend/tests/Noxen.Crm.Tests`: testes de domínio, de API (PostgreSQL real) e do pipeline outbox → RabbitMQ → Redis (84 testes passando na última execução).
-- `frontend/src`: `lib` (cliente da API com refresh de token, tipos, regras de domínio, formatação), `auth`, `components`, `pages`, `styles/tokens.css` (tokens) e `styles/app.css`.
+- `frontend/src`: `lib` (cliente da API com refresh de token, tipos, regras de domínio, formatação), `auth`, `components` (`components/ui` = kit de UI; `Layout`, `CommandPalette`, `Toast`), `pages` (carregadas por rota com `React.lazy`) e `styles/` (`tokens.css` com tokens e temas, `base.css`, `components.css`, `layout.css`, `pages.css`). Telas novas montam componentes de `components/ui` e usam só tokens semânticos; sem cores ou durações soltas.
 - `docs/adr`: decisões de arquitetura. `reference/`: material de consulta somente leitura (CRM original e o kit).
 
 ## Comandos
@@ -84,7 +84,7 @@ Preferência do kit: toda mudança visual é estruturada no Figma antes do códi
 **Exceção decidida pelo responsável em 2026-10-22: o Figma foi dispensado** (o plano Starter esgotou o limite de chamadas do MCP e o responsável pediu para pular a etapa). Todas as telas atuais foram feitas direto em código, usando os mesmos tokens do arquivo Figma como variáveis CSS (`frontend/src/styles/tokens.css`) e conferidas no navegador integrado do app, em contêineres. Se o responsável retomar o Figma, valem as regras do kit para as telas novas.
 
 - Arquivo Figma do projeto: [Noxen CRM](https://www.figma.com/design/hWeWyT7Q9So3onOVEZwa33) (chave `hWeWyT7Q9So3onOVEZwa33`, plano Starter da conta de Lucas Camy).
-- Estado do arquivo (2026-10-22): página **Componentes** com variáveis (Primitives, Color, Spacing, Radius; sintaxe de código WEB `var(--...)`), 12 estilos de texto Inter e os componentes Icon, Button, Badge, Input e Search (node `2:173`). A página **Telas** está vazia: nenhuma tela existe no Figma, então **o código é a fonte de verdade visual** e o arquivo Figma pode estar defasado. Mantenha `tokens.css` e as variáveis do Figma alinhadas se um dos dois mudar.
+- Estado do arquivo (2026-10-22): página **Componentes** com variáveis (Primitives, Color, Spacing, Radius; sintaxe de código WEB `var(--...)`), 12 estilos de texto Inter e os componentes Icon, Button, Badge, Input e Search (node `2:173`). A página **Telas** está vazia: nenhuma tela existe no Figma, então **o código é a fonte de verdade visual** e o arquivo Figma pode estar defasado. Mantenha `tokens.css` e as variáveis do Figma alinhadas se um dos dois mudar. **Desde o redesign de 2026-10-22 (ADR-0008) o Figma está defasado**: o front passou a Geist, Phosphor, acento índigo e tema escuro, e o Figma ainda tem Inter e os tokens antigos; regenere o Figma a partir de `tokens.css` se ele voltar a ser usado.
 
 ## Validação
 

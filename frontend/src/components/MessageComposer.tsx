@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { Copy, MessageCircle } from 'lucide-react'
+import { Copy, WhatsappLogo } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { SCRIPT_STAGES } from '../lib/domain'
 import { firstName, renderScript, whatsappUrlWithText } from '../lib/format'
 import { useScripts } from '../lib/queries'
 import type { Lead } from '../lib/types'
 import { useToast } from './Toast'
+import { Button, ButtonLink } from './ui'
 
 /** Monta a mensagem de abordagem do lead a partir de um script, com os placeholders preenchidos e editável antes de enviar. */
 export function MessageComposer({ lead }: { lead: Lead }) {
@@ -70,13 +71,13 @@ export function MessageComposer({ lead }: { lead: Lead }) {
             <textarea rows={6} value={text} onChange={(e) => setEdited(e.target.value)} />
           </label>
           <div className="composer-actions">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => void copy()}>
+            <Button type="button" size="sm" onClick={() => void copy()}>
               <Copy size={16} aria-hidden /> Copiar
-            </button>
+            </Button>
             {wa ? (
-              <a className="btn btn-primary btn-sm" href={wa} target="_blank" rel="noreferrer">
-                <MessageCircle size={16} aria-hidden /> Abrir no WhatsApp
-              </a>
+              <ButtonLink variant="primary" size="sm" href={wa} target="_blank" rel="noreferrer">
+                <WhatsappLogo size={16} aria-hidden /> Abrir no WhatsApp
+              </ButtonLink>
             ) : (
               <span className="muted small">Cadastre o WhatsApp do lead para abrir a conversa.</span>
             )}

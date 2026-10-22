@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { MessageCircle } from 'lucide-react'
+import { WhatsappLogo } from '@phosphor-icons/react'
 import { api, ApiError } from '../lib/api'
 import { BRAZILIAN_STATES, SOURCES, STAGES, moveError, stageInfo } from '../lib/domain'
 import { brl, dateTimeBR, parseMoney, whatsappUrl } from '../lib/format'
 import { useLeadHistory } from '../lib/queries'
 import type { Client, Lead, LeadInput, LeadSource, LeadStage, UserLookup } from '../lib/types'
-import { Badge, Dialog, ErrorNote, SelectField, TextAreaField, TextField } from './ui'
+import { Badge, Dialog, ErrorNote, SelectField, TextAreaField, TextField, Button, ButtonLink } from './ui'
 import { useToast } from './Toast'
 import { MessageComposer } from './MessageComposer'
 import { ConfirmDialog } from './common'
@@ -160,9 +160,9 @@ function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: Lea
           {lead.stage === 'Perdido' && lead.lostReason && <span className="muted">Motivo: {lead.lostReason}</span>}
           {lead.estimatedValue != null && <span className="muted">Valor estimado {brl(lead.estimatedValue)}</span>}
           {wa && (
-            <a className="btn btn-secondary btn-sm" href={wa} target="_blank" rel="noreferrer">
-              <MessageCircle size={16} aria-hidden /> WhatsApp
-            </a>
+            <ButtonLink size="sm" href={wa} target="_blank" rel="noreferrer">
+              <WhatsappLogo size={16} aria-hidden /> WhatsApp
+            </ButtonLink>
           )}
         </div>
       )}
@@ -268,18 +268,18 @@ function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: Lea
           </label>
         )}
         {lead && isAdmin && lead.stage !== 'Fechado' && (
-          <button type="button" className="btn btn-ghost btn-danger-text" onClick={() => setConfirmDelete(true)}>
+          <Button type="button" variant="danger-ghost" onClick={() => setConfirmDelete(true)}>
             Excluir lead
-          </button>
+          </Button>
         )}
         <span className="spacer" />
-        <button type="button" className="btn btn-secondary" onClick={onClose}>
+        <Button type="button" onClick={onClose}>
           {canWrite ? 'Cancelar' : 'Fechar'}
-        </button>
+        </Button>
         {canWrite && (
-          <button type="submit" className="btn btn-primary" disabled={save.isPending || values.company.trim() === ''}>
+          <Button type="submit" variant="primary" disabled={save.isPending || values.company.trim() === ''}>
             {save.isPending ? 'Salvando…' : lead ? 'Salvar' : 'Criar lead'}
-          </button>
+          </Button>
         )}
       </footer>
     </form>
@@ -323,12 +323,12 @@ function LostForm({ lead, onClose }: { lead: Lead; onClose: () => void }) {
       {lose.error && <ErrorNote message={messageOf(lose.error)} />}
       <footer className="dialog-footer">
         <span className="spacer" />
-        <button type="button" className="btn btn-secondary" onClick={onClose}>
+        <Button type="button" onClick={onClose}>
           Cancelar
-        </button>
-        <button type="submit" className="btn btn-danger" disabled={lose.isPending || reason.trim() === ''}>
+        </Button>
+        <Button type="submit" variant="danger" disabled={lose.isPending || reason.trim() === ''}>
           {lose.isPending ? 'Salvando…' : 'Marcar como perdido'}
-        </button>
+        </Button>
       </footer>
     </form>
   )
@@ -400,12 +400,12 @@ function ConvertForm({ lead, users, onClose }: { lead: Lead; users: UserLookup[]
       {convert.error && <ErrorNote message={messageOf(convert.error)} />}
       <footer className="dialog-footer">
         <span className="spacer" />
-        <button type="button" className="btn btn-secondary" onClick={onClose}>
+        <Button type="button" onClick={onClose}>
           Cancelar
-        </button>
-        <button type="submit" className="btn btn-primary" disabled={convert.isPending}>
+        </Button>
+        <Button type="submit" variant="primary" disabled={convert.isPending}>
           {convert.isPending ? 'Convertendo…' : 'Converter em cliente'}
-        </button>
+        </Button>
       </footer>
     </form>
   )

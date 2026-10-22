@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { Copy, Plus } from 'lucide-react'
+import { ChatText, Copy, Plus } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { SCRIPT_STAGES } from '../lib/domain'
 import { useCrmMutation } from '../lib/mutations'
 import { useScripts } from '../lib/queries'
 import type { ScriptStage, ScriptTemplate } from '../lib/types'
-import { Dialog, EmptyState, ErrorNote, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Button, CardGridSkeleton, Dialog, EmptyState, ErrorNote, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 import { useToast } from '../components/Toast'
 
@@ -31,17 +31,27 @@ export function ScriptsPage() {
         title="Scripts comerciais"
         subtitle="Modelos de mensagem por etapa. Use {{empresa}}, {{contato}} e {{meu_nome}} para personalizar."
         actions={
-          <button type="button" className="btn btn-primary" onClick={() => setEditing({ script: null })}>
+          <Button type="button" variant="primary" onClick={() => setEditing({ script: null })}>
             <Plus size={18} aria-hidden /> Novo script
-          </button>
+          </Button>
         }
       />
       {isPending ? (
-        <p className="loading">Carregando scripts…</p>
+        <CardGridSkeleton cards={6} />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os scripts." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
-        <EmptyState title="Nenhum script cadastrado">Cadastre as mensagens que a equipe usa na abordagem, follow-up e fechamento.</EmptyState>
+        <EmptyState
+          icon={ChatText}
+          title="Nenhum script cadastrado"
+          action={
+            <Button variant="primary" onClick={() => setEditing({ script: null })}>
+              <Plus size={16} aria-hidden /> Novo script
+            </Button>
+          }
+        >
+          Cadastre as mensagens que a equipe usa na abordagem, no follow-up e no fechamento.
+        </EmptyState>
       ) : (
         SCRIPT_STAGES.filter((st) => data.some((s) => s.stage === st.key)).map((st) => (
           <section key={st.key} className="script-group">
@@ -58,9 +68,9 @@ export function ScriptsPage() {
                     <p className="muted small">{[s.channel, s.niche].filter(Boolean).join(' · ')}</p>
                     {s.usage && <p className="small">{s.usage}</p>}
                     <pre className="script-body">{s.body}</pre>
-                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => void copy(s.body)}>
+                    <Button type="button" size="sm" onClick={() => void copy(s.body)}>
                       <Copy size={16} aria-hidden /> Copiar texto
-                    </button>
+                    </Button>
                   </article>
                 ))}
             </div>

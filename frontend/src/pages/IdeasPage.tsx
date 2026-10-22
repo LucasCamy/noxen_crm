@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { Plus } from 'lucide-react'
+import { Lightbulb, Plus } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { IDEA_STATUSES, PRIORITIES, ideaStatusInfo, priorityInfo } from '../lib/domain'
 import { dateBR } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useIdeas } from '../lib/queries'
 import type { Idea, IdeaStatus, Priority } from '../lib/types'
-import { Badge, Dialog, EmptyState, ErrorNote, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, Button, CardGridSkeleton, Dialog, EmptyState, ErrorNote, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 
@@ -22,17 +22,27 @@ export function IdeasPage() {
         title="Ideias"
         subtitle="Oportunidades e iniciativas para analisar, aprovar e executar"
         actions={
-          <button type="button" className="btn btn-primary" onClick={() => setEditing({ idea: null })}>
+          <Button type="button" variant="primary" onClick={() => setEditing({ idea: null })}>
             <Plus size={18} aria-hidden /> Nova ideia
-          </button>
+          </Button>
         }
       />
       {isPending ? (
-        <p className="loading">Carregando ideias…</p>
+        <CardGridSkeleton cards={6} />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as ideias." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
-        <EmptyState title="Nenhuma ideia ainda">Registre ideias de conteúdo, ofertas e melhorias para não perdê-las.</EmptyState>
+        <EmptyState
+          icon={Lightbulb}
+          title="Nenhuma ideia ainda"
+          action={
+            <Button variant="primary" onClick={() => setEditing({ idea: null })}>
+              <Plus size={16} aria-hidden /> Nova ideia
+            </Button>
+          }
+        >
+          Registre ideias de conteúdo, ofertas e melhorias para não perdê-las.
+        </EmptyState>
       ) : (
         <div className="idea-grid">
           {data.map((i) => {

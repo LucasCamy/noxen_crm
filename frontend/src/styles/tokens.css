@@ -1,74 +1,40 @@
 /*
- * Tokens de design do Noxen CRM. Espelham as variáveis do arquivo Figma "Noxen CRM"
- * (coleções Primitives, Color, Spacing e Radius); os nomes seguem a sintaxe de código WEB de lá.
+ * Tokens do Noxen CRM. Duas camadas:
+ *  1) primitivas (escalas de cor, espaço, raio, tipo, movimento);
+ *  2) semânticas (--bg-*, --text-*, --line-*, --status-*), que mudam entre claro e escuro.
+ * Componentes usam só as semânticas.
+ *
+ * Regras de forma (uma escala só): chips 6px, controles 8px, superfícies 12px, diálogos 16px; círculo só em avatar.
+ * Uma única cor de destaque (índigo); verde/âmbar/vermelho/azul/azul-petróleo existem apenas como status.
  */
+
 :root {
-  /* Primitivas */
-  --white: #ffffff;
-  --slate-50: #f8fafc;
-  --slate-100: #f1f5f9;
-  --slate-200: #e2e8f0;
-  --slate-300: #cbd5e1;
-  --slate-400: #94a3b8;
-  --slate-500: #64748b;
-  --slate-600: #475569;
-  --slate-700: #334155;
-  --slate-800: #1e293b;
-  --slate-900: #0f172a;
-  --brand-50: #f3f0ff;
-  --brand-100: #e9e3ff;
-  --brand-500: #6d4aff;
-  --brand-600: #5b3ae8;
-  --brand-700: #4a2dc7;
-  --green-50: #ecfdf5;
-  --green-700: #047857;
-  --amber-50: #fffbeb;
-  --amber-700: #b45309;
-  --red-50: #fef2f2;
-  --red-700: #b91c1c;
-  --blue-50: #eff6ff;
-  --blue-700: #1d4ed8;
-  --teal-50: #f0fdfa;
-  --teal-700: #0f766e;
+  /* ---------- primitivas: neutros (cinza azulado, uma família só) */
+  --n-0: #ffffff;
+  --n-25: #fafbfc;
+  --n-50: #f4f5f8;
+  --n-100: #eceef2;
+  --n-200: #e1e4ea;
+  --n-300: #cdd2db;
+  --n-400: #98a0ae;
+  --n-500: #6b7385;
+  --n-600: #4a5163;
+  --n-700: #343a4a;
+  --n-800: #1e2230;
+  --n-900: #12141c;
+  --n-950: #0b0d13;
 
-  /* Semânticas */
-  --color-bg-app: var(--slate-50);
-  --color-bg-surface: var(--white);
-  --color-bg-subtle: var(--slate-100);
-  --color-bg-sidebar: var(--slate-900);
-  --color-bg-sidebar-active: var(--slate-800);
-  --color-bg-brand: var(--brand-600);
-  --color-bg-brand-hover: var(--brand-700);
-  --color-bg-brand-subtle: var(--brand-50);
-  --color-text-primary: var(--slate-900);
-  --color-text-secondary: var(--slate-600);
-  --color-text-muted: var(--slate-500);
-  --color-text-on-brand: var(--white);
-  --color-text-on-sidebar: var(--slate-300);
-  --color-text-on-sidebar-strong: var(--white);
-  --color-text-brand: var(--brand-700);
-  --color-border-default: var(--slate-200);
-  --color-border-strong: var(--slate-300);
-  --color-border-focus: var(--brand-500);
-  --color-border-danger: var(--red-700);
-  --color-border-sidebar: var(--slate-800);
+  /* destaque (índigo, saturação contida) */
+  --brand-50: #f0eefc;
+  --brand-100: #e3dffa;
+  --brand-300: #aaa0ef;
+  --brand-400: #8b7fe8;
+  --brand-500: #6f61df;
+  --brand-600: #5a4bd1;
+  --brand-700: #4a3cb8;
+  --brand-800: #3b3095;
 
-  --color-status-neutral-bg: var(--slate-100);
-  --color-status-neutral-fg: var(--slate-700);
-  --color-status-info-bg: var(--blue-50);
-  --color-status-info-fg: var(--blue-700);
-  --color-status-teal-bg: var(--teal-50);
-  --color-status-teal-fg: var(--teal-700);
-  --color-status-warning-bg: var(--amber-50);
-  --color-status-warning-fg: var(--amber-700);
-  --color-status-brand-bg: var(--brand-100);
-  --color-status-brand-fg: var(--brand-700);
-  --color-status-success-bg: var(--green-50);
-  --color-status-success-fg: var(--green-700);
-  --color-status-danger-bg: var(--red-50);
-  --color-status-danger-fg: var(--red-700);
-
-  /* Espaçamento e raios */
+  /* ---------- espaçamento (grade de 4) */
   --space-0: 0;
   --space-2: 2px;
   --space-4: 4px;
@@ -83,14 +49,217 @@
   --space-40: 40px;
   --space-48: 48px;
   --space-64: 64px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 999px;
 
-  /* Tipografia (estilos de texto do Figma) */
-  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --shadow-dialog: 0 24px 48px -12px rgb(15 23 42 / 0.28);
-  --shadow-drag: 0 12px 24px -8px rgb(15 23 42 / 0.25);
+  /* ---------- raios */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-full: 999px;
+
+  /* ---------- tipografia */
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-h3: 15px;
+  --fs-h2: 18px;
+  --fs-h1: 24px;
+  --fs-display: 32px;
+  --fs-metric: 36px;
+  --lh-xs: 16px;
+  --lh-sm: 18px;
+  --lh-md: 20px;
+  --lh-lg: 24px;
+
+  /* ---------- movimento (Emil: custom easing, abaixo de 300ms; sem ease genérico) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 260ms;
+
+  /* ---------- camadas */
+  --z-sticky: 20;
+  --z-sidebar: 30;
+  --z-dialog: 40;
+  --z-toast: 50;
+  --z-progress: 60;
+
+  /* ---------- largura útil */
+  --content-max: 1280px;
+  --sidebar-w: 232px;
+}
+
+/* ================================================================ tema claro (padrão) */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg-app: var(--n-50);
+  --bg-surface: var(--n-0);
+  --bg-raised: var(--n-0);
+  --bg-subtle: var(--n-50);
+  --bg-hover: #f1f2f6;
+  --bg-muted: var(--n-100);
+  --bg-inverse: var(--n-900);
+  --bg-brand: var(--brand-600);
+  --bg-brand-hover: var(--brand-700);
+  --bg-brand-subtle: var(--brand-50);
+  --bg-scrim: rgb(14 16 26 / 0.46);
+
+  --text-1: #12141c;
+  --text-2: #4a5163;
+  --text-3: #636b7d;
+  --text-on-brand: #ffffff;
+  --text-brand: var(--brand-700);
+  --text-inverse: #f4f5f8;
+
+  --line: #e4e7ed;
+  --line-strong: #cdd2db;
+  --line-focus: var(--brand-500);
+  --ring: 0 0 0 3px rgb(111 97 223 / 0.28);
+
+  --icon: #6b7385;
+
+  /* status: fundo suave + texto; todos passam de 4.5:1 sobre o fundo */
+  --status-neutral-bg: #eceef2;
+  --status-neutral-fg: #3d4455;
+  --status-info-bg: #e8effd;
+  --status-info-fg: #1c4fc2;
+  --status-teal-bg: #def4f1;
+  --status-teal-fg: #0b6259;
+  --status-warning-bg: #fcefd6;
+  --status-warning-fg: #8a4b06;
+  --status-brand-bg: #ebe8fb;
+  --status-brand-fg: #4a3cb8;
+  --status-success-bg: #def3e7;
+  --status-success-fg: #11643a;
+  --status-danger-bg: #fde6e4;
+  --status-danger-fg: #b0261b;
+
+  /* barras de dados (funil): rampa do destaque */
+  --bar-track: #eceef2;
+
+  /* sombras tintadas pelo tom do fundo (uma só fonte de luz, vinda de cima) */
+  --shadow-xs: 0 1px 2px rgb(20 24 48 / 0.06);
+  --shadow-sm: 0 1px 2px rgb(20 24 48 / 0.06), 0 2px 6px -2px rgb(20 24 48 / 0.08);
+  --shadow-md: 0 4px 12px -2px rgb(24 22 60 / 0.1), 0 12px 28px -8px rgb(24 22 60 / 0.14);
+  --shadow-lg: 0 24px 56px -12px rgb(22 20 58 / 0.3);
+  --shadow-drag: 0 14px 32px -10px rgb(24 22 60 / 0.35);
+
+  --skeleton-a: #eceef2;
+  --skeleton-b: #f6f7fa;
+}
+
+/* ================================================================ tema escuro */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg-app: #0b0d13;
+  --bg-surface: #11141c;
+  --bg-raised: #171b25;
+  --bg-subtle: #0e1118;
+  --bg-hover: #181c27;
+  --bg-muted: #1c2130;
+  --bg-inverse: #eef0f5;
+  --bg-brand: #6b5ce0;
+  --bg-brand-hover: #7a6cea;
+  --bg-brand-subtle: #1c1a3a;
+  --bg-scrim: rgb(3 4 8 / 0.6);
+
+  --text-1: #eceef4;
+  --text-2: #adb3c2;
+  --text-3: #858d9f;
+  --text-on-brand: #ffffff;
+  --text-brand: #b3a9f6;
+  --text-inverse: #12141c;
+
+  --line: #222736;
+  --line-strong: #323849;
+  --line-focus: #8b7fe8;
+  --ring: 0 0 0 3px rgb(139 127 232 / 0.4);
+
+  --icon: #858d9f;
+
+  --status-neutral-bg: #1f2432;
+  --status-neutral-fg: #b6bccb;
+  --status-info-bg: #14233f;
+  --status-info-fg: #8db2f7;
+  --status-teal-bg: #0f2a28;
+  --status-teal-fg: #66cfc3;
+  --status-warning-bg: #33250f;
+  --status-warning-fg: #f0b45c;
+  --status-brand-bg: #231f4a;
+  --status-brand-fg: #b3a9f6;
+  --status-success-bg: #10281c;
+  --status-success-fg: #6fd19a;
+  --status-danger-bg: #381717;
+  --status-danger-fg: #f59a92;
+
+  --bar-track: #1c2130;
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 6px 16px -4px rgb(0 0 0 / 0.5), 0 16px 32px -10px rgb(0 0 0 / 0.55);
+  --shadow-lg: 0 28px 64px -12px rgb(0 0 0 / 0.75);
+  --shadow-drag: 0 16px 36px -10px rgb(0 0 0 / 0.7);
+
+  --skeleton-a: #1a1f2c;
+  --skeleton-b: #222838;
+}
+
+/* segue o sistema quando o usuário não escolheu (data-theme ausente) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
+    --bg-app: #0b0d13;
+    --bg-surface: #11141c;
+    --bg-raised: #171b25;
+    --bg-subtle: #0e1118;
+    --bg-hover: #181c27;
+    --bg-muted: #1c2130;
+    --bg-inverse: #eef0f5;
+    --bg-brand: #6b5ce0;
+    --bg-brand-hover: #7a6cea;
+    --bg-brand-subtle: #1c1a3a;
+    --bg-scrim: rgb(3 4 8 / 0.6);
+    --text-1: #eceef4;
+    --text-2: #adb3c2;
+    --text-3: #858d9f;
+    --text-brand: #b3a9f6;
+    --text-inverse: #12141c;
+    --line: #222736;
+    --line-strong: #323849;
+    --line-focus: #8b7fe8;
+    --ring: 0 0 0 3px rgb(139 127 232 / 0.4);
+    --icon: #858d9f;
+    --status-neutral-bg: #1f2432;
+    --status-neutral-fg: #b6bccb;
+    --status-info-bg: #14233f;
+    --status-info-fg: #8db2f7;
+    --status-teal-bg: #0f2a28;
+    --status-teal-fg: #66cfc3;
+    --status-warning-bg: #33250f;
+    --status-warning-fg: #f0b45c;
+    --status-brand-bg: #231f4a;
+    --status-brand-fg: #b3a9f6;
+    --status-success-bg: #10281c;
+    --status-success-fg: #6fd19a;
+    --status-danger-bg: #381717;
+    --status-danger-fg: #f59a92;
+    --bar-track: #1c2130;
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 6px 16px -4px rgb(0 0 0 / 0.5), 0 16px 32px -10px rgb(0 0 0 / 0.55);
+    --shadow-lg: 0 28px 64px -12px rgb(0 0 0 / 0.75);
+    --shadow-drag: 0 16px 36px -10px rgb(0 0 0 / 0.7);
+    --skeleton-a: #1a1f2c;
+    --skeleton-b: #222838;
+  }
 }

@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError } from '../lib/api'
-import { TextField } from '../components/ui'
+import { Check } from '@phosphor-icons/react'
+import { Button, ErrorNote, TextField } from '../components/ui'
 
 export function LoginPage() {
   const { status, signIn } = useAuth()
@@ -40,19 +41,30 @@ export function LoginPage() {
           <span className="brand-name">Noxen CRM</span>
         </div>
         <div className="login-pitch">
-          <h2>Mais clientes. Mais faturamento.</h2>
-          <p>Funil de prospecção, carteira de clientes e metas da Noxen em um só lugar.</p>
+          <h2>Mais clientes, mais faturamento.</h2>
+          <ul className="login-points">
+            <li>
+              <Check size={16} weight="bold" aria-hidden />
+              <span>Funil de prospecção e follow-ups sem esquecer ninguém.</span>
+            </li>
+            <li>
+              <Check size={16} weight="bold" aria-hidden />
+              <span>Carteira, mensalidades e MRR em tempo real.</span>
+            </li>
+            <li>
+              <Check size={16} weight="bold" aria-hidden />
+              <span>Agenda, conteúdos e metas da equipe no mesmo lugar.</span>
+            </li>
+          </ul>
         </div>
-        <small>Noxen Assessoria · Campo Grande, MS</small>
+        <small className="muted">Noxen Assessoria, Campo Grande (MS)</small>
       </section>
       <section className="login-panel">
         <form className="login-form" onSubmit={onSubmit} noValidate>
           <h1>Entrar</h1>
           <p className="login-sub">Use o e-mail e a senha cadastrados pelo administrador.</p>
           {error && (
-            <div className="error-note" role="alert">
-              {error}
-            </div>
+            <ErrorNote message={error} />
           )}
           <TextField
             label="E-mail"
@@ -72,9 +84,9 @@ export function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button type="submit" className="btn btn-primary btn-block" disabled={busy || !email || !password}>
-            {busy ? 'Entrando…' : 'Entrar'}
-          </button>
+          <Button type="submit" variant="primary" block loading={busy} disabled={!email || !password}>
+            Entrar
+          </Button>
         </form>
       </section>
     </div>
