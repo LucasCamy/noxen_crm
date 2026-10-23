@@ -206,7 +206,7 @@ function Kits() {
           Guarde cores, fontes e tom de voz de cada cliente para criar com consistência.
         </EmptyState>
       ) : (
-        <div className="idea-grid">
+        <div className="card-grid">
           {data.map((k) => {
             const logo = safeUrl(k.logoUrl)
             return (

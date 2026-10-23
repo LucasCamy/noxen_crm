@@ -268,15 +268,20 @@
 
 /* ============================================================ kanban */
 
+/* quadro: todas as colunas cabem na largura (sem rolagem lateral); em telas estreitas as colunas empilham */
 .board {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(268px, 1fr);
+  grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr));
   gap: var(--space-12);
   align-items: start;
-  padding-bottom: var(--space-16);
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
+}
+
+.board-closed {
+  margin-top: var(--space-16);
+}
+
+.board-title {
+  margin-top: var(--space-24);
 }
 
 .column {
@@ -289,7 +294,6 @@
   border-top: 2px solid var(--tone-fg, var(--line-strong));
   border-radius: var(--r-lg);
   background: var(--bg-subtle);
-  scroll-snap-align: start;
   transition:
     background-color var(--dur-base) var(--ease-out),
     border-color var(--dur-base) var(--ease-out);
@@ -414,10 +418,6 @@
 
 .lead-next.overdue svg {
   color: inherit;
-}
-
-.studio-board {
-  grid-auto-columns: minmax(240px, 1fr);
 }
 
 .studio-card .row-actions {
@@ -584,11 +584,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-.idea-grid,
-.script-grid {
+.card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-16);
+  align-items: start;
 }
 
 .idea.done {
@@ -621,12 +621,6 @@
   white-space: pre-wrap;
   overflow: auto;
   overflow-wrap: anywhere;
-}
-
-.docs {
-  display: grid;
-  gap: var(--space-12);
-  max-width: 820px;
 }
 
 .doc-body {
@@ -788,6 +782,17 @@
 }
 
 /* ============================================================ responsivo (páginas) */
+
+@media (max-width: 1280px) {
+  .board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .board .column-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
 
 @media (max-width: 1100px) {
   .dash-cols,

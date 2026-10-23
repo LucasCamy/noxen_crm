@@ -486,8 +486,10 @@
   display: flex;
   gap: var(--space-4);
   margin-bottom: var(--space-20);
-  border-bottom: 1px solid var(--line);
+  box-shadow: inset 0 -1px 0 var(--line);
   overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
 
 .tab {
@@ -508,7 +510,7 @@
 .tab::after {
   content: '';
   position: absolute;
-  inset: auto 8px -1px;
+  inset: auto var(--space-8) 0;
   height: 2px;
   border-radius: var(--r-xs) var(--r-xs) 0 0;
   background: var(--bg-brand);
@@ -866,7 +868,7 @@
 
 .table th,
 .table td {
-  padding: var(--space-12) var(--space-16);
+  padding: var(--space-10) var(--space-16);
   text-align: left;
   vertical-align: middle;
   border-bottom: 1px solid var(--line);
@@ -882,6 +884,7 @@
 }
 
 .table tbody tr {
+  height: 64px;
   transition: background-color var(--dur-fast) var(--ease-out);
 }
 

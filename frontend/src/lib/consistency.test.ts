@@ -45,6 +45,11 @@ describe('consistência do front', () => {
     expect(inline).toEqual([])
   })
 
+  it('quadros cabem na largura: sem rolagem lateral no meio da tela', () => {
+    const pages = Object.entries(styles).filter(([path]) => path.endsWith('/pages.css')) as [string, string][]
+    expect(offenders(pages, /scroll-snap|grid-auto-flow:\s*column/)).toEqual([])
+  })
+
   it('CSS fora dos tokens não tem cor, espaçamento, raio nem fonte soltos', () => {
     const files = Object.entries(styles).filter(([path]) => !path.endsWith('/tokens.css')) as [string, string][]
     expect(offenders(files, /#[0-9a-fA-F]{3,8}\b/, () => false).filter((l) => !/#000\b/.test(l))).toEqual([])

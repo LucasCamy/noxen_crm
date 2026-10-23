@@ -27,6 +27,11 @@ import { ConvertDialog, LeadDialog, LostDialog } from '../components/LeadDialogs
 
 const PAGE_SIZE = 50
 
+// Etapas em andamento ocupam o quadro; Fechado e Perdido ficam numa faixa própria abaixo (cabem sem rolagem lateral).
+const CLOSED_KEYS: LeadStage[] = ['Fechado', 'Perdido']
+const OPEN_STAGES = STAGES.filter((s) => !CLOSED_KEYS.includes(s.key))
+const CLOSED_STAGES = STAGES.filter((s) => CLOSED_KEYS.includes(s.key))
+
 function LeadCardView({ lead, owner, overlay }: { lead: Lead; owner?: UserLookup; overlay?: boolean }) {
   const open = lead.stage !== 'Fechado' && lead.stage !== 'Perdido'
   const overdue = open && isOverdue(lead.nextStepDate)
@@ -220,6 +225,24 @@ export function LeadsPage() {
     [],
   )
 
+  const renderColumn = (stage: (typeof STAGES)[number]) => {
+    const r = results[STAGES.findIndex((s) => s.key === stage.key)]
+    return (
+      <Column
+        key={stage.key}
+        stage={stage}
+        leads={r.data?.items ?? []}
+        total={r.data?.total ?? 0}
+        loading={r.isPending}
+        failed={r.isError && !r.data}
+        retry={() => void r.refetch()}
+        users={users}
+        canDrag={canWrite}
+        onOpen={(lead) => setDialog({ lead })}
+      />
+    )
+  }
+
   return (
     <>
       <PageHeader
@@ -235,27 +258,17 @@ export function LeadsPage() {
 
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragging(null)} accessibility={accessibility}>
         {allPending ? (
-          <BoardSkeleton columns={STAGES.length} />
+          <BoardSkeleton columns={OPEN_STAGES.length} />
         ) : (
-        <div className="board" role="group" aria-label="Funil de leads">
-          {STAGES.map((stage, i) => {
-            const r = results[i]
-            return (
-              <Column
-                key={stage.key}
-                stage={stage}
-                leads={r.data?.items ?? []}
-                total={r.data?.total ?? 0}
-                loading={r.isPending}
-                failed={r.isError && !r.data}
-                retry={() => void r.refetch()}
-                users={users}
-                canDrag={canWrite}
-                onOpen={(lead) => setDialog({ lead })}
-              />
-            )
-          })}
-        </div>
+          <>
+            <div className="board" role="group" aria-label="Funil de leads" style={{ ['--cols' as string]: OPEN_STAGES.length }}>
+              {OPEN_STAGES.map(renderColumn)}
+            </div>
+            <h2 className="group-label board-title">Encerrados</h2>
+            <div className="board board-closed" role="group" aria-label="Leads encerrados" style={{ ['--cols' as string]: CLOSED_STAGES.length }}>
+              {CLOSED_STAGES.map(renderColumn)}
+            </div>
+          </>
         )}
         <DragOverlay>{dragging && <LeadCardView lead={dragging} owner={users.find((u) => u.id === dragging.ownerId)} overlay />}</DragOverlay>
       </DndContext>

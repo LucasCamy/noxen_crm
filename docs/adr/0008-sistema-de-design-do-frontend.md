@@ -30,6 +30,7 @@ Uma revisão de consistência mostrou que, embora o cabeçalho fosse um componen
 - **Datas**: um único módulo; datas relativas até 7 dias ("hoje", "em 3 dias", "venceu há 2 dias") e data completa além disso; "—" para ausente; colunas de data em `td.num`.
 - **Tokens**: escala de espaçamento, raios e fontes aplicadas em todo o CSS (valores fora da escala foram arredondados para o degrau mais próximo); cores do botão de perigo viraram tokens.
 - **Carregamento**: nenhum "Carregando…" em texto puro; sempre esqueleto ou `Loading`.
+- **Quadros sem rolagem lateral** (2026-10-23): o Kanban de leads e o quadro do Estúdio rolavam na horizontal no meio da tela. Agora as colunas dividem a largura (5 abertas; Fechado e Perdido em faixa "Encerrados" abaixo) e, abaixo de 1280px, empilham. As abas deixaram de mostrar uma barra de rolagem residual, as grades de cartões são uma só (`.card-grid`), as tabelas têm linha de altura única e Ideias, Scripts, Conteúdos e tarefas ganharam busca e filtros no mesmo padrão.
 - **Trava**: `src/lib/consistency.test.ts` lê o código-fonte e falha se alguém voltar a usar `Plus` à mão, tamanho de ícone numérico, fatiar data, classes antigas de filtro/cartão, `style` inline estático, ou cor, espaçamento, raio e fonte soltos no CSS.
 
 ## Alternativas consideradas

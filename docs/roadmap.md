@@ -1,6 +1,6 @@
 # Roadmap
 
-Mapeia as seções do CRM original ([central/LEIA-ME.md](../reference/noxencrm-original/central/LEIA-ME.md)) para o novo projeto.
+Mapeia as seções do CRM original ([central/LEIA-ME.md](../reference/noxencrm-original/central/LEIA-ME.md)) para o novo projeto. A comparação detalhada, recurso por recurso, com o que falta e a ordem sugerida, está em [paridade-com-o-original.md](paridade-com-o-original.md).
 
 | Fase | Conteúdo | Origem no original | Estado |
 |---|---|---|---|

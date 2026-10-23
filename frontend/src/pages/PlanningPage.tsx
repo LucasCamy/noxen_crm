@@ -14,7 +14,13 @@ import { ClientSelect } from '../components/ClientSelect'
 
 type Tab = 'agenda' | 'tasks'
 
-const KIND_TONE: Record<string, Tone> = { Tarefa: 'brand', 'Follow-up': 'info', Reunião: 'teal', Vencimento: 'warning', Conteúdo: 'neutral' }
+const KIND_TONE: Record<string, Tone> = {
+  Tarefa: 'brand',
+  'Follow-up': 'info',
+  Reunião: 'teal',
+  Vencimento: 'warning',
+  Conteúdo: 'neutral',
+}
 
 export function PlanningPage() {
   const [tab, setTab] = useState<Tab>('agenda')
@@ -35,13 +41,7 @@ export function PlanningPage() {
 
   return (
     <>
-      <PageHeader
-        title="Planejamento"
-        subtitle="Agenda do que vence nos próximos dias e as tarefas da equipe"
-        actions={
-          <CreateButton onClick={() => setCreating(true)}>Nova tarefa</CreateButton>
-        }
-      />
+      <PageHeader title="Planejamento" subtitle="Agenda do que vence nos próximos dias e as tarefas da equipe" actions={<CreateButton onClick={() => setCreating(true)}>Nova tarefa</CreateButton>} />
       <Tabs
         label="Seções do planejamento"
         value={tab}
@@ -68,7 +68,10 @@ function Agenda() {
     const overdue = (data ?? []).filter((i) => i.overdue)
     const byDay = new Map<string, PlanningItem[]>()
     for (const item of (data ?? []).filter((i) => !i.overdue)) byDay.set(item.date, [...(byDay.get(item.date) ?? []), item])
-    return { overdue, days: [...byDay.entries()].sort(([a], [b]) => a.localeCompare(b)) }
+    return {
+      overdue,
+      days: [...byDay.entries()].sort(([a], [b]) => a.localeCompare(b)),
+    }
   }, [data])
 
   return (
@@ -85,7 +88,9 @@ function Agenda() {
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar a agenda." onRetry={() => void refetch()} />
       ) : groups.overdue.length === 0 && groups.days.length === 0 ? (
-        <EmptyState icon={CalendarBlank} title="Nada na agenda">Sem tarefas, follow-ups, reuniões, vencimentos ou publicações neste período.</EmptyState>
+        <EmptyState icon={CalendarBlank} title="Nada na agenda">
+          Sem tarefas, follow-ups, reuniões, vencimentos ou publicações neste período.
+        </EmptyState>
       ) : (
         <div className="agenda">
           {groups.overdue.length > 0 && <AgendaGroup title="Atrasados" danger items={groups.overdue} />}
@@ -124,63 +129,130 @@ function AgendaGroup({ title, items, danger }: { title: string; items: PlanningI
 
 // ---------------------------------------------------------------- tarefas
 
+/** Agrupa por prazo, como a agenda: atrasadas, hoje, próximos 7 dias, mais adiante, sem prazo e concluídas. */
+function groupTasks(tasks: Task[], today: string = todayISO()): { label: string; danger?: boolean; items: Task[] }[] {
+  const byDue = (a: Task, b: Task) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999')
+  const open = tasks.filter((t) => t.status !== 'Concluida' && t.status !== 'Cancelada')
+  const closed = tasks.filter((t) => t.status === 'Concluida' || t.status === 'Cancelada')
+  const week = addDaysISO(today, 7)
+  const buckets = [
+    {
+      label: 'Atrasadas',
+      danger: true,
+      items: open.filter((t) => t.dueDate && t.dueDate.slice(0, 10) < today),
+    },
+    {
+      label: 'Hoje',
+      items: open.filter((t) => t.dueDate?.slice(0, 10) === today),
+    },
+    {
+      label: 'Próximos 7 dias',
+      items: open.filter((t) => t.dueDate && t.dueDate.slice(0, 10) > today && t.dueDate.slice(0, 10) <= week),
+    },
+    {
+      label: 'Mais adiante',
+      items: open.filter((t) => t.dueDate && t.dueDate.slice(0, 10) > week),
+    },
+    { label: 'Sem prazo', items: open.filter((t) => !t.dueDate) },
+    { label: 'Concluídas', items: closed },
+  ]
+  return buckets.filter((b) => b.items.length > 0).map((b) => ({ ...b, items: b.items.sort(byDue) }))
+}
+
 function Tasks() {
   const { user } = useAuth()
   const [onlyOpen, setOnlyOpen] = useState(true)
+  const [priority, setPriority] = useState<Priority | ''>('')
   const [editing, setEditing] = useState<{ task: Task | null } | null>(null)
   const [deleting, setDeleting] = useState<Task | null>(null)
-  const { data, isPending, isError, refetch } = useTasks({ open: onlyOpen || undefined })
+  const { data, isPending, isError, refetch } = useTasks({
+    open: onlyOpen || undefined,
+  })
   const users = useUsers().data ?? []
+  const visible = (data ?? []).filter((t) => !priority || t.priority === priority)
+  const groups = groupTasks(visible)
 
   const toggle = useCrmMutation(
-    (t: Task) => api.post<Task>(`/api/tasks/${t.id}/status`, { status: t.status === 'Concluida' ? 'Aberta' : 'Concluida', version: t.version }),
+    (t: Task) =>
+      api.post<Task>(`/api/tasks/${t.id}/status`, {
+        status: t.status === 'Concluida' ? 'Aberta' : 'Concluida',
+        version: t.version,
+      }),
     ['tasks', 'planning'],
   )
-  const del = useCrmMutation((t: Task) => api.delete(`/api/tasks/${t.id}`), ['tasks', 'planning'], 'Tarefa excluída.', () => setDeleting(null))
+  const del = useCrmMutation(
+    (t: Task) => api.delete(`/api/tasks/${t.id}`),
+    ['tasks', 'planning'],
+    'Tarefa excluída.',
+    () => setDeleting(null),
+  )
 
   return (
     <>
       <FilterBar>
+        <FilterSelect label="Filtrar por prioridade" value={priority} onChange={(e) => setPriority(e.target.value as Priority | '')}>
+          <option value="">Todas as prioridades</option>
+          {PRIORITIES.map((p) => (
+            <option key={p.key} value={p.key}>
+              {p.label}
+            </option>
+          ))}
+        </FilterSelect>
         <FilterCheck label="Só abertas" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} />
       </FilterBar>
       {isPending ? (
         <ListSkeleton rows={5} label="Carregando tarefas" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as tarefas." onRetry={() => void refetch()} />
-      ) : data.length === 0 ? (
+      ) : visible.length === 0 ? (
         <EmptyState
           icon={ListChecks}
-          title="Nenhuma tarefa"
-          action={<CreateButton onClick={() => setEditing({ task: null })}>Nova tarefa</CreateButton>}
+          title={priority ? 'Nenhuma tarefa com esse filtro' : 'Nenhuma tarefa'}
+          action={priority ? undefined : <CreateButton onClick={() => setEditing({ task: null })}>Nova tarefa</CreateButton>}
         >
-          Crie tarefas para a equipe e acompanhe os prazos.
+          {priority ? 'Escolha outra prioridade.' : 'Crie tarefas para a equipe e acompanhe os prazos.'}
         </EmptyState>
       ) : (
-        <ul className="task-list">
-          {data.map((t) => {
-            const done = t.status === 'Concluida'
-            const p = priorityInfo(t.priority)
-            return (
-              <li key={t.id} className={`task${done || t.status === 'Cancelada' ? ' done' : ''}`}>
-                <input type="checkbox" checked={done} disabled={t.status === 'Cancelada' || toggle.isPending} onChange={() => toggle.mutate(t)} aria-label={`Concluir ${t.title}`} />
-                <div className="task-main">
-                  <strong>{t.title}</strong>
-                  <span className="muted small">
-                    {[t.clientName, t.type, users.find((u) => u.id === t.assigneeId)?.fullName].filter(Boolean).join(' · ') || 'Sem vínculo'}
-                  </span>
-                </div>
-                <Badge tone={p.tone}>{p.label}</Badge>
-                <span className={`task-due small${t.overdue ? ' neg' : ' muted'}`}>{t.dueDate ? <DateValue value={t.dueDate} mode="due" /> : 'Sem prazo'}</span>
-                <RowActions label={t.title} onEdit={() => setEditing({ task: t })} onDelete={() => setDeleting(t)} />
-              </li>
-            )
-          })}
-        </ul>
+        <div className="agenda">
+          {groups.map((g) => (
+            <section key={g.label} className="agenda-group">
+              <h2 className={`group-label${g.danger ? ' neg' : ''}`}>{g.label}</h2>
+              <ul className="task-list">
+                {g.items.map((t) => {
+                  const done = t.status === 'Concluida'
+                  const p = priorityInfo(t.priority)
+                  return (
+                    <li key={t.id} className={`task${done || t.status === 'Cancelada' ? ' done' : ''}`}>
+                      <input type="checkbox" checked={done} disabled={t.status === 'Cancelada' || toggle.isPending} onChange={() => toggle.mutate(t)} aria-label={`Concluir ${t.title}`} />
+                      <div className="task-main">
+                        <strong>{t.title}</strong>
+                        <span className="muted small">{[t.clientName, t.type, users.find((u) => u.id === t.assigneeId)?.fullName].filter(Boolean).join(' · ') || 'Sem vínculo'}</span>
+                      </div>
+                      <Badge tone={p.tone}>{p.label}</Badge>
+                      <span className={`task-due small${t.overdue ? ' neg' : ' muted'}`}>{t.dueDate ? <DateValue value={t.dueDate} mode="due" /> : 'Sem prazo'}</span>
+                      <RowActions label={t.title} onEdit={() => setEditing({ task: t })} onDelete={() => setDeleting(t)} />
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          ))}
+        </div>
       )}
       <Dialog open={!!editing} onClose={() => setEditing(null)} wide title={editing?.task ? 'Editar tarefa' : 'Nova tarefa'}>
         {editing && <TaskForm key={editing.task?.id ?? 'nova'} task={editing.task} defaultAssignee={user?.id ?? ''} onClose={() => setEditing(null)} />}
       </Dialog>
-      <ConfirmDialog open={!!deleting} title="Excluir tarefa?" description={deleting?.title} confirmLabel="Excluir" danger busy={del.isPending} error={del.error?.message} onConfirm={() => deleting && del.mutate(deleting)} onClose={() => setDeleting(null)} />
+      <ConfirmDialog
+        open={!!deleting}
+        title="Excluir tarefa?"
+        description={deleting?.title}
+        confirmLabel="Excluir"
+        danger
+        busy={del.isPending}
+        error={del.error?.message}
+        onConfirm={() => deleting && del.mutate(deleting)}
+        onClose={() => setDeleting(null)}
+      />
     </>
   )
 }
@@ -199,9 +271,18 @@ function TaskForm({ task, defaultAssignee, onClose }: { task: Task | null; defau
   })
   const save = useCrmMutation(
     async (body: object) => {
-      const saved = task ? await api.put<Task>(`/api/tasks/${task.id}`, { ...body, version: task.version }) : await api.post<Task>('/api/tasks', body)
+      const saved = task
+        ? await api.put<Task>(`/api/tasks/${task.id}`, {
+            ...body,
+            version: task.version,
+          })
+        : await api.post<Task>('/api/tasks', body)
       // O status não faz parte do corpo de edição: muda por chamada própria, com a versão já atualizada.
-      if (task && values.status !== task.status) await api.post(`/api/tasks/${saved.id}/status`, { status: values.status, version: saved.version })
+      if (task && values.status !== task.status)
+        await api.post(`/api/tasks/${saved.id}/status`, {
+          status: values.status,
+          version: saved.version,
+        })
       return saved
     },
     ['tasks', 'planning'],

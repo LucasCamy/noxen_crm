@@ -5,8 +5,9 @@ import { IDEA_STATUSES, PRIORITIES, ideaStatusInfo, priorityInfo } from '../lib/
 import { EMPTY } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useIdeas } from '../lib/queries'
+import { matches } from '../lib/search'
 import type { Idea, IdeaStatus, Priority } from '../lib/types'
-import { Badge, Card, CardGridSkeleton, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, ItemTitle, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, Card, CardGridSkeleton, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterSelect, ItemTitle, PageHeader, SearchInput, Segmented, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 
@@ -14,6 +15,14 @@ export function IdeasPage() {
   const { data, isPending, isError, refetch } = useIdeas()
   const [editing, setEditing] = useState<{ idea: Idea | null } | null>(null)
   const [deleting, setDeleting] = useState<Idea | null>(null)
+  const [q, setQ] = useState('')
+  const [status, setStatus] = useState<IdeaStatus | ''>('')
+  const [priority, setPriority] = useState<Priority | ''>('')
+  const rank = (p: Priority) => PRIORITIES.findIndex((x) => x.key === p)
+  const visible = (data ?? [])
+    .filter((i) => (!status || i.status === status) && (!priority || i.priority === priority) && matches(q, i.title, i.notes, i.category, i.clientName, i.nextStep))
+    .sort((a, b) => rank(a.priority) - rank(b.priority))
+  const filtered = !!(q.trim() || status || priority)
   const del = useCrmMutation((i: Idea) => api.delete(`/api/ideas/${i.id}`), ['ideas'], 'Ideia excluída.', () => setDeleting(null))
 
   return (
@@ -23,21 +32,29 @@ export function IdeasPage() {
         subtitle="Oportunidades e iniciativas para analisar, aprovar e executar"
         actions={<CreateButton onClick={() => setEditing({ idea: null })}>Nova ideia</CreateButton>}
       />
+      <FilterBar>
+        <SearchInput label="Buscar ideias" placeholder="Buscar ideias" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Segmented label="Filtrar por status" value={status} onChange={setStatus} options={[{ key: '' as const, label: 'Todas' }, ...IDEA_STATUSES.map((s) => ({ key: s.key, label: s.label }))]} />
+        <FilterSelect label="Filtrar por prioridade" value={priority} onChange={(e) => setPriority(e.target.value as Priority | '')}>
+          <option value="">Todas as prioridades</option>
+          {PRIORITIES.map((p) => (
+            <option key={p.key} value={p.key}>
+              {p.label}
+            </option>
+          ))}
+        </FilterSelect>
+      </FilterBar>
       {isPending ? (
         <CardGridSkeleton cards={6} />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as ideias." onRetry={() => void refetch()} />
-      ) : data.length === 0 ? (
-        <EmptyState
-          icon={Lightbulb}
-          title="Nenhuma ideia ainda"
-          action={<CreateButton onClick={() => setEditing({ idea: null })}>Nova ideia</CreateButton>}
-        >
-          Registre ideias de conteúdo, ofertas e melhorias para não perdê-las.
+      ) : visible.length === 0 ? (
+        <EmptyState icon={Lightbulb} title={filtered ? 'Nenhuma ideia com esses filtros' : 'Nenhuma ideia ainda'} action={filtered ? undefined : <CreateButton onClick={() => setEditing({ idea: null })}>Nova ideia</CreateButton>}>
+          {filtered ? 'Ajuste a busca ou escolha outro status.' : 'Registre ideias de conteúdo, ofertas e melhorias para não perdê-las.'}
         </EmptyState>
       ) : (
-        <div className="idea-grid">
-          {data.map((i) => {
+        <div className="card-grid">
+          {visible.map((i) => {
             const st = ideaStatusInfo(i.status)
             const p = priorityInfo(i.priority)
             return (

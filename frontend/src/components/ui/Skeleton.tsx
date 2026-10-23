@@ -91,7 +91,7 @@ export function BoardSkeleton({ columns = 5 }: { columns?: number }) {
 
 export function CardGridSkeleton({ cards = 6 }: { cards?: number }) {
   return (
-    <div className="idea-grid" role="status" aria-live="polite" aria-label="Carregando">
+    <div className="card-grid" role="status" aria-live="polite" aria-label="Carregando">
       {Array.from({ length: cards }, (_, i) => (
         <div key={i} className="card" aria-hidden>
           <Skeleton h={14} w="60%" />

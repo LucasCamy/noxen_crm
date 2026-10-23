@@ -4,8 +4,9 @@ import { api } from '../lib/api'
 import { SCRIPT_STAGES } from '../lib/domain'
 import { useCrmMutation } from '../lib/mutations'
 import { useScripts } from '../lib/queries'
+import { matches } from '../lib/search'
 import type { ScriptStage, ScriptTemplate } from '../lib/types'
-import { Button, Card, CardGridSkeleton, CreateButton, Dialog, EmptyState, ErrorNote, ICON, ItemTitle, PageHeader, SectionTitle, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Button, Card, CardGridSkeleton, CreateButton, Dialog, EmptyState, ErrorNote, FilterBar, FilterSelect, ICON, ItemTitle, PageHeader, SearchInput, SectionTitle, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 import { useToast } from '../components/Toast'
 
@@ -14,6 +15,12 @@ export function ScriptsPage() {
   const { data, isPending, isError, refetch } = useScripts()
   const [editing, setEditing] = useState<{ script: ScriptTemplate | null } | null>(null)
   const [deleting, setDeleting] = useState<ScriptTemplate | null>(null)
+  const [q, setQ] = useState('')
+  const [stage, setStage] = useState<ScriptStage | ''>('')
+  const [channel, setChannel] = useState('')
+  const channels = [...new Set((data ?? []).map((s) => s.channel).filter((c): c is string => !!c))].sort()
+  const visible = (data ?? []).filter((s) => (!stage || s.stage === stage) && (!channel || s.channel === channel) && matches(q, s.title, s.body, s.usage, s.niche))
+  const filtered = !!(q.trim() || stage || channel)
   const del = useCrmMutation((s: ScriptTemplate) => api.delete(`/api/scripts/${s.id}`), ['scripts'], 'Script excluído.', () => setDeleting(null))
 
   async function copy(text: string) {
@@ -32,24 +39,37 @@ export function ScriptsPage() {
         subtitle="Modelos de mensagem por etapa. Use {{empresa}}, {{contato}} e {{meu_nome}} para personalizar."
         actions={<CreateButton onClick={() => setEditing({ script: null })}>Novo script</CreateButton>}
       />
+      <FilterBar>
+        <SearchInput label="Buscar scripts" placeholder="Buscar nos scripts" value={q} onChange={(e) => setQ(e.target.value)} />
+        <FilterSelect label="Filtrar por etapa" value={stage} onChange={(e) => setStage(e.target.value as ScriptStage | '')}>
+          <option value="">Todas as etapas</option>
+          {SCRIPT_STAGES.map((st) => (
+            <option key={st.key} value={st.key}>
+              {st.label}
+            </option>
+          ))}
+        </FilterSelect>
+        <FilterSelect label="Filtrar por canal" value={channel} onChange={(e) => setChannel(e.target.value)}>
+          <option value="">Todos os canais</option>
+          {channels.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </FilterSelect>
+      </FilterBar>
       {isPending ? (
         <CardGridSkeleton cards={6} />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os scripts." onRetry={() => void refetch()} />
-      ) : data.length === 0 ? (
-        <EmptyState
-          icon={ChatText}
-          title="Nenhum script cadastrado"
-          action={<CreateButton onClick={() => setEditing({ script: null })}>Novo script</CreateButton>}
-        >
-          Cadastre as mensagens que a equipe usa na abordagem, no follow-up e no fechamento.
+      ) : visible.length === 0 ? (
+        <EmptyState icon={ChatText} title={filtered ? 'Nenhum script com esses filtros' : 'Nenhum script cadastrado'} action={filtered ? undefined : <CreateButton onClick={() => setEditing({ script: null })}>Novo script</CreateButton>}>
+          {filtered ? 'Ajuste a busca ou escolha outra etapa.' : 'Cadastre as mensagens que a equipe usa na abordagem, no follow-up e no fechamento.'}
         </EmptyState>
       ) : (
-        SCRIPT_STAGES.filter((st) => data.some((s) => s.stage === st.key)).map((st) => (
+        SCRIPT_STAGES.filter((st) => visible.some((s) => s.stage === st.key)).map((st) => (
           <section key={st.key} className="script-group">
             <SectionTitle>{st.label}</SectionTitle>
-            <div className="script-grid">
-              {data
+            <div className="card-grid">
+              {visible
                 .filter((s) => s.stage === st.key)
                 .map((s) => (
                   <Card as="article" key={s.id}>

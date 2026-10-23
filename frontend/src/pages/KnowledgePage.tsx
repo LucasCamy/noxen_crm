@@ -34,7 +34,7 @@ export function KnowledgePage() {
           Registre aqui o posicionamento, as ofertas e o tom de voz para toda a equipe consultar.
         </EmptyState>
       ) : (
-        <div className="docs">
+        <div className="card-grid">
           {data.map((d) => (
             <Card as="article" key={d.id} title={d.title} action={<RowActions label={d.title} onEdit={() => setEditing({ doc: d })} onDelete={() => setDeleting(d)} />}>
               <p className="pre doc-body">{d.body}</p>

@@ -5,17 +5,21 @@ import { CHANNELS, CONTENT_FORMATS, CONTENT_STATUSES, contentFormatLabel, conten
 import { EMPTY } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useContents } from '../lib/queries'
+import { matches } from '../lib/search'
 import type { ContentFormat, ContentItem, ContentStatus } from '../lib/types'
-import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterSelect, PageHeader, SelectField, TableSkeleton, TextAreaField, TextField } from '../components/ui'
+import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterSelect, PageHeader, SearchInput, Segmented, SelectField, TableSkeleton, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 
 export function ContentsPage() {
-  const [status, setStatus] = useState('')
+  const [q, setQ] = useState('')
+  const [status, setStatus] = useState<ContentStatus | ''>('')
   const [channel, setChannel] = useState('')
   const [editing, setEditing] = useState<{ item: ContentItem | null } | null>(null)
   const [deleting, setDeleting] = useState<ContentItem | null>(null)
   const { data, isPending, isError, refetch } = useContents({ status: status || undefined, channel: channel || undefined })
+  const visible = (data ?? []).filter((c) => matches(q, c.title, c.body, c.objective, c.clientName))
+  const filtered = !!(q.trim() || status || channel)
   const del = useCrmMutation((c: ContentItem) => api.delete(`/api/contents/${c.id}`), ['contents', 'planning'], 'Conteúdo excluído.', () => setDeleting(null))
 
   return (
@@ -26,14 +30,8 @@ export function ContentsPage() {
         actions={<CreateButton onClick={() => setEditing({ item: null })}>Novo conteúdo</CreateButton>}
       />
       <FilterBar>
-        <FilterSelect label="Filtrar por status" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">Todos os status</option>
-          {CONTENT_STATUSES.map((s) => (
-            <option key={s.key} value={s.key}>
-              {s.label}
-            </option>
-          ))}
-        </FilterSelect>
+        <SearchInput label="Buscar conteúdos" placeholder="Buscar título ou texto" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Segmented label="Filtrar por status" value={status} onChange={setStatus} options={[{ key: '' as const, label: 'Todos' }, ...CONTENT_STATUSES.map((s) => ({ key: s.key, label: s.label }))]} />
         <FilterSelect label="Filtrar por canal" value={channel} onChange={(e) => setChannel(e.target.value)}>
           <option value="">Todos os canais</option>
           {CHANNELS.map((c) => (
@@ -45,15 +43,15 @@ export function ContentsPage() {
         <TableSkeleton rows={5} cols={6} label="Carregando conteúdos" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os conteúdos." onRetry={() => void refetch()} />
-      ) : data.length === 0 ? (
+      ) : visible.length === 0 ? (
         <EmptyState
           icon={FilmSlate}
           title="Nenhum conteúdo encontrado"
           action={
-            status || channel ? undefined : <CreateButton onClick={() => setEditing({ item: null })}>Novo conteúdo</CreateButton>
+            filtered ? undefined : <CreateButton onClick={() => setEditing({ item: null })}>Novo conteúdo</CreateButton>
           }
         >
-          {status || channel ? 'Ajuste os filtros.' : 'Cadastre o primeiro post, roteiro ou anúncio.'}
+          {filtered ? 'Ajuste a busca ou os filtros.' : 'Cadastre o primeiro post, roteiro ou anúncio.'}
         </EmptyState>
       ) : (
         <div className="table-wrap">
@@ -73,7 +71,7 @@ export function ContentsPage() {
               </tr>
             </thead>
             <tbody>
-              {data.map((c) => {
+              {visible.map((c) => {
                 const st = contentStatusInfo(c.status)
                 return (
                   <tr key={c.id}>

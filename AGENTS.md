@@ -47,7 +47,7 @@ Frontend (em `frontend/`; Node 24, `npm install` já executado). Com a API em `h
 ```bash
 npm run dev -- --host 127.0.0.1      # http://127.0.0.1:5173
 npm run build                        # tsc -b + vite build
-npm test                             # vitest (36 testes passando): formatação, scripts, links, regras de funil e consistência visual
+npm test                             # vitest (40 testes passando): formatação, scripts, links, regras de funil e consistência visual
 npm run lint                         # oxlint (12 avisos conhecidos: fast refresh, Dialog e abertura por atalho)
 ```
 
@@ -62,7 +62,7 @@ npm run lint                         # oxlint (12 avisos conhecidos: fast refres
 - Enums trafegam e são gravados como texto. Datas com `DateTimeOffset`/`DateOnly`; valores em R$ com `decimal(14,2)`.
 - Erros de regra → 422 (`DomainException`); validação de entrada → 400; conflito → 409; sempre `ProblemDetails`.
 - Frontend: o estado do servidor fica no TanStack Query (chaves como `leads`, `clients`, `payments`, `ledger`, `tasks`, `contents`, `studio-*`; depois de mutar, invalide-as, de preferência com `useCrmMutation`). Os tipos de `src/lib/types.ts` espelham os DTOs da API à mão: ao mudar um DTO, atualize-os no mesmo trabalho. Cores, espaçamento e raios vêm só de variáveis CSS de `tokens.css`, nunca de valores soltos. As regras de funil em `lib/domain.ts` apenas espelham o domínio para retorno imediato; a API é a autoridade.
-- **Padrão de página (ADR-0008, imposto por `src/lib/consistency.test.ts`)**: `PageHeader` com a ação principal sempre à direita (`CreateButton`; nas telas com abas, o rótulo muda com a aba); abas, se houver, logo abaixo; depois `FilterBar` com a ordem busca, selects (`FilterSelect`/`FilterInput`), segmentado, caixas (`FilterCheck`); por fim o conteúdo. Filtro nunca fica no cabeçalho e ação de criar nunca fica na barra de filtros. Estados vazios repetem a mesma ação com o mesmo `CreateButton`.
+- **Padrão de página (ADR-0008, imposto por `src/lib/consistency.test.ts`)**: `PageHeader` com a ação principal sempre à direita (`CreateButton`; nas telas com abas, o rótulo muda com a aba); abas, se houver, logo abaixo; depois `FilterBar` com a ordem busca, selects (`FilterSelect`/`FilterInput`), segmentado, caixas (`FilterCheck`); por fim o conteúdo. Filtro nunca fica no cabeçalho e ação de criar nunca fica na barra de filtros. Estados vazios repetem a mesma ação com o mesmo `CreateButton`. Filtros: busca sempre primeiro; status curto (até 6 opções) usa `Segmented`, o resto usa `FilterSelect`; listas e grades com dados filtráveis oferecem ao menos busca. Quadros (Kanban) **nunca** rolam na horizontal: as colunas dividem a largura (`--cols`) e, abaixo de 1280px, empilham; etapas terminais ficam em faixa própria. Tabelas têm linha de 64px; grades de cartões usam `.card-grid`.
 - **Componentes únicos**: `Card` (`title`/`action`; `padding="sm"` para cartões densos do Kanban), `SectionTitle` (h2/h3 de seção), `ItemTitle` (h3 de item), `.group-label` (rótulo de grupo em listas), `DateValue`/`formatDate` para qualquer data (modos `date`, `short`, `month`, `datetime`, `relative`, `due`), `EMPTY` ("—") para valor ausente em tabelas e fichas (cartões podem usar frase explícita, como "Sem próximo passo"), `ICON` para tamanho de ícone (14 meta, 16 controles, 18 navegação, 22 estado vazio). Não fatie texto de data nem use `toLocale*Date/TimeString` fora de `lib/format.ts`.
 - **Tokens no CSS**: espaçamento só por `var(--space-*)`, raios por `var(--r-*)`, fontes por `var(--fs-*)`, cores só em `tokens.css`. `style={{…}}` só para valor dinâmico (variável CSS, `flex`, cor vinda de dado). Rótulos de campo de data seguem o domínio: Vencimento (cobrança), Prazo (tarefa), Entrega (estúdio), Publicação (conteúdo).
 - O refresh token é rotativo: nunca chame `/api/auth/refresh` fora de `restoreSession()` (ele serializa as chamadas; duas simultâneas derrubam a sessão por suspeita de reuso).
@@ -97,4 +97,4 @@ Use a [matriz do kit](reference/agent-project-kit/skills/project-workflow/refere
 
 Mantenha a documentação alinhada ao comportamento implementado e identifique propostas como propostas. README para execução, OpenAPI (`/openapi/v1.json`, só em Development) para contratos HTTP e [docs/adr](docs/adr/README.md) para decisões duráveis. Numere ADRs sequencialmente (`NNNN-titulo-curto.md`), com contexto, decisão, alternativas e consequências; substitua em vez de reescrever. Não crie ADR para alterações triviais.
 
-Mapa: [README](README.md) · [roadmap](docs/roadmap.md) · [ADRs](docs/adr/README.md).
+Mapa: [README](README.md) · [roadmap](docs/roadmap.md) · [ADRs](docs/adr/README.md) · [paridade com o CRM original](docs/paridade-com-o-original.md).

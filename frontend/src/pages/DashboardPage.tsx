@@ -154,7 +154,7 @@ export function DashboardPage() {
               <ul className="funnel">
                 {STAGES.map((s) => {
                   const idx = openStages.findIndex((o) => o.key === s.key)
-                  const t = idx >= 0 ? 35 + (65 * idx) / Math.max(openStages.length - 1, 1) : 100
+                  const t = idx >= 0 ? 55 + (45 * idx) / Math.max(openStages.length - 1, 1) : 100
                   const cls = s.key === 'Fechado' ? 'bar bar-success' : s.key === 'Perdido' ? 'bar bar-danger' : 'bar'
                   return (
                     <li key={s.key} className="funnel-row">
