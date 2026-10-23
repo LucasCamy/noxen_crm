@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useIsFetching } from '@tanstack/react-query'
 import {
@@ -23,27 +23,12 @@ import {
 } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { useTheme, type ThemeChoice } from '../lib/theme'
-import { Avatar, ICON, IconButton, Skeleton } from './ui'
+import { Avatar, ICON, IconButton } from './ui'
+import { RouteSkeleton } from './skeletons'
+
+const MotionLayer = lazy(() => import('../motion/MotionLayer'))
 import { CommandPalette, type Command } from './CommandPalette'
 
-/** Esqueleto mostrado enquanto o código de uma rota é baixado; mantém título e conteúdo no lugar para não haver salto de layout. */
-function RouteFallback() {
-  return (
-    <div role="status" aria-live="polite" aria-label="Carregando página">
-      <div className="page-header" aria-hidden>
-        <div className="page-header-text">
-          <Skeleton h={28} w={180} r={8} />
-          <Skeleton h={14} w={280} />
-        </div>
-      </div>
-      <div className="skeleton-stack" aria-hidden>
-        {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} h={40} />
-        ))}
-      </div>
-    </div>
-  )
-}
 
 type Need = 'finance' | 'admin' | null
 interface NavEntry {
@@ -103,6 +88,12 @@ export function Layout() {
   const { pathname } = useLocation()
   const fetching = useIsFetching()
   const [paletteOpen, setPaletteOpen] = useState(false)
+  // a rolagem suave e a barra de progresso chegam depois da primeira pintura, fora do caminho crítico
+  const [motionReady, setMotionReady] = useState(false)
+  useEffect(() => {
+    const id = window.setTimeout(() => setMotionReady(true), 400)
+    return () => window.clearTimeout(id)
+  }, [])
   const mainRef = useRef<HTMLElement>(null)
   const firstRender = useRef(true)
 
@@ -206,12 +197,18 @@ export function Layout() {
       <main className="main" id="conteudo" ref={mainRef} tabIndex={-1}>
         <div className="main-inner">
           <div className="page" key={pathname}>
-            <Suspense fallback={<RouteFallback />}>
+            <Suspense fallback={<RouteSkeleton pathname={pathname} />}>
               <Outlet />
             </Suspense>
           </div>
         </div>
       </main>
+
+      {motionReady && (
+        <Suspense fallback={null}>
+          <MotionLayer />
+        </Suspense>
+      )}
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} commands={commands} />
     </div>

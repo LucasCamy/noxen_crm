@@ -1,16 +1,20 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { BookOpen } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { useCrmMutation } from '../lib/mutations'
 import { useKnowledge } from '../lib/queries'
+import { useScrollReveal } from '../motion/hooks'
 import type { KnowledgeDoc } from '../lib/types'
-import { Card, CardGridSkeleton, CreateButton, Dialog, EmptyState, ErrorNote, PageHeader, TextAreaField, TextField } from '../components/ui'
+import { Card, CreateButton, Dialog, EmptyState, ErrorNote, PageHeader, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
+import { DocCardsSkeleton } from '../components/skeletons'
 
 export function KnowledgePage() {
   const { data, isPending, isError, refetch } = useKnowledge()
   const [editing, setEditing] = useState<{ doc: KnowledgeDoc | null } | null>(null)
   const [deleting, setDeleting] = useState<KnowledgeDoc | null>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+  useScrollReveal(gridRef, '.card', data?.length)
   const del = useCrmMutation((d: KnowledgeDoc) => api.delete(`/api/knowledge/${d.id}`), ['knowledge'], 'Seção excluída.', () => setDeleting(null))
   const nextOrder = (data?.reduce((max, d) => Math.max(max, d.sortOrder), 0) ?? 0) + 10
 
@@ -22,7 +26,7 @@ export function KnowledgePage() {
         actions={<CreateButton onClick={() => setEditing({ doc: null })}>Nova seção</CreateButton>}
       />
       {isPending ? (
-        <CardGridSkeleton cards={3} />
+        <DocCardsSkeleton />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar a base." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
@@ -34,7 +38,7 @@ export function KnowledgePage() {
           Registre aqui o posicionamento, as ofertas e o tom de voz para toda a equipe consultar.
         </EmptyState>
       ) : (
-        <div className="card-grid">
+        <div className="card-grid" ref={gridRef}>
           {data.map((d) => (
             <Card as="article" key={d.id} title={d.title} action={<RowActions label={d.title} onEdit={() => setEditing({ doc: d })} onDelete={() => setDeleting(d)} />}>
               <p className="pre doc-body">{d.body}</p>

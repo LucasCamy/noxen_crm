@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../lib/api'
+import { USER_COLUMNS } from '../lib/columns'
 import { useCrmMutation } from '../lib/mutations'
 import { useUserList } from '../lib/queries'
 import type { Role, UserSummary } from '../lib/types'
-import { Badge, Button, CreateButton, Dialog, ErrorNote, PageHeader, SelectField, TableSkeleton, TextField } from '../components/ui'
+import { Badge, Button, CreateButton, Dialog, ErrorNote, PageHeader, SelectField, TableHead, TableSkeleton, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, useForm } from '../components/common'
 
 const ROLE_HELP: Record<Role, string> = {
@@ -35,23 +36,13 @@ export function UsersPage() {
         actions={<CreateButton onClick={() => setCreating(true)}>Novo usuário</CreateButton>}
       />
       {isPending ? (
-        <TableSkeleton rows={4} cols={5} label="Carregando usuários" />
+        <TableSkeleton columns={USER_COLUMNS} rows={4} label="Carregando usuários" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os usuários." onRetry={() => void refetch()} />
       ) : (
         <div className="table-wrap">
           <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">Nome</th>
-                <th scope="col">E-mail</th>
-                <th scope="col">Papel</th>
-                <th scope="col">Situação</th>
-                <th scope="col">
-                  <span className="sr-only">Ações</span>
-                </th>
-              </tr>
-            </thead>
+            <TableHead columns={USER_COLUMNS} />
             <tbody>
               {data.map((u) => (
                 <tr key={u.id}>

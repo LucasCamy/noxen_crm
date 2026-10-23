@@ -3,11 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Buildings, CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { CLIENT_STATUSES, clientStatusInfo } from '../lib/domain'
+import { CLIENT_COLUMNS } from '../lib/columns'
 import { brl } from '../lib/format'
 import { useClients, useUsers } from '../lib/queries'
 import { useDebounced } from '../lib/useDebounced'
 import type { ClientStatus } from '../lib/types'
-import { Badge, Button, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, ICON, PageHeader, SearchInput, Segmented, TableSkeleton } from '../components/ui'
+import { Badge, Button, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, ICON, PageHeader, SearchInput, Segmented, TableHead, TableSkeleton } from '../components/ui'
 import { ClientForm } from '../components/ClientForm'
 
 const PAGE_SIZE = 20
@@ -67,7 +68,7 @@ export function ClientsPage() {
       </FilterBar>
 
       {isPending ? (
-        <TableSkeleton rows={7} cols={6} label="Carregando clientes" />
+        <TableSkeleton columns={CLIENT_COLUMNS} rows={7} label="Carregando clientes" />
       ) : error && !data ? (
         <ErrorNote message="Não foi possível carregar os clientes." onRetry={() => void refetch()} />
       ) : data && data.items.length === 0 ? (
@@ -96,20 +97,7 @@ export function ClientsPage() {
           <div className={`table-wrap${isFetching ? ' is-refreshing' : ''}`} aria-busy={isFetching}>
             <table className="table">
               <caption className="sr-only">Clientes da carteira</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Cliente</th>
-                  <th scope="col">Status</th>
-                  <th scope="col" className="num">
-                    Mensalidade
-                  </th>
-                  <th scope="col" className="num">
-                    Vencimento
-                  </th>
-                  <th scope="col">Próxima reunião</th>
-                  <th scope="col">Responsável</th>
-                </tr>
-              </thead>
+              <TableHead columns={CLIENT_COLUMNS} />
               <tbody>
                 {data.items.map((c) => {
                   const st = clientStatusInfo(c.status)

@@ -50,6 +50,13 @@ describe('consistência do front', () => {
     expect(offenders(pages, /scroll-snap|grid-auto-flow:\s*column/)).toEqual([])
   })
 
+  it('movimento: GSAP e Lenis só entram por src/motion, sempre atrás de prefers-reduced-motion e sem ouvir scroll na mão', () => {
+    expect(offenders(app, /from ['"](gsap|lenis)/, (p) => p.includes('/motion/'))).toEqual([])
+    expect(offenders(app, /addEventListener\(\s*['"]scroll['"]/)).toEqual([])
+    const withoutGuard = app.filter(([path, text]) => path.includes('/motion/') && !path.endsWith('/gsap.ts') && /from '\.\/gsap'/.test(text) && !text.includes('MOTION_OK')).map(([path]) => path)
+    expect(withoutGuard).toEqual([])
+  })
+
   it('CSS fora dos tokens não tem cor, espaçamento, raio nem fonte soltos', () => {
     const files = Object.entries(styles).filter(([path]) => !path.endsWith('/tokens.css')) as [string, string][]
     expect(offenders(files, /#[0-9a-fA-F]{3,8}\b/, () => false).filter((l) => !/#000\b/.test(l))).toEqual([])

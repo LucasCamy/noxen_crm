@@ -175,7 +175,6 @@
   background: color-mix(in oklab, var(--bg-brand) var(--t, 100%), var(--bar-track));
   transform-origin: left;
   transform: scaleX(var(--v, 0));
-  animation: bar-in 320ms var(--ease-out) both;
 }
 
 .bar-success > i {
@@ -185,12 +184,6 @@
 .bar-danger > i {
   background: var(--status-danger-fg);
   opacity: 0.75;
-}
-
-@keyframes bar-in {
-  from {
-    transform: scaleX(0);
-  }
 }
 
 .funnel-count {

@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../lib/api'
+import { ledgerColumns, paymentColumns } from '../lib/columns'
 import { brl, formatDate, parseMoney, todayISO } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useClients } from '../lib/queries'
 import type { LedgerEntry, LedgerInput, LedgerKind, Payment, PaymentInput, PaymentKind } from '../lib/types'
-import { Badge, Button, DateValue, Dialog, ErrorNote, SelectField, TextField } from './ui'
+import { Badge, Button, DateValue, Dialog, ErrorNote, SelectField, TableHead, TextField } from './ui'
 import { ConfirmDialog, FormFooter, blankToNull, useForm } from './common'
 import type { Tone } from '../lib/domain'
 
@@ -34,22 +35,7 @@ export function PaymentsTable({ payments, showClient, canManage }: { payments: P
     <>
       <div className="table-wrap">
         <table className="table">
-          <thead>
-            <tr>
-              {showClient && <th scope="col">Cliente</th>}
-              <th scope="col">Cobrança</th>
-              <th scope="col">Vencimento</th>
-              <th scope="col" className="num">
-                Valor
-              </th>
-              <th scope="col">Status</th>
-              {canManage && (
-                <th scope="col">
-                  <span className="sr-only">Ações</span>
-                </th>
-              )}
-            </tr>
-          </thead>
+          <TableHead columns={paymentColumns(showClient, canManage)} />
           <tbody>
             {payments.map((p) => {
               const b = paymentBadge(p)
@@ -221,22 +207,7 @@ export function LedgerTable({ entries, canManage }: { entries: LedgerEntry[]; ca
     <>
       <div className="table-wrap">
         <table className="table">
-          <thead>
-            <tr>
-              <th scope="col">Data</th>
-              <th scope="col">Descrição</th>
-              <th scope="col">Tipo</th>
-              <th scope="col" className="num">
-                Valor
-              </th>
-              <th scope="col">Status</th>
-              {canManage && (
-                <th scope="col">
-                  <span className="sr-only">Ações</span>
-                </th>
-              )}
-            </tr>
-          </thead>
+          <TableHead columns={ledgerColumns(canManage)} />
           <tbody>
             {entries.map((e) => {
               const realizado = e.status === 'Realizado'

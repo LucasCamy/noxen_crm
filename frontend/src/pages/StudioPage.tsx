@@ -6,10 +6,11 @@ import { safeUrl } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useBrandKits, useReferences, useStudioProjects } from '../lib/queries'
 import type { BrandKit, ReferenceLink, StudioKind, StudioProject, StudioStatus } from '../lib/types'
-import { Badge, BoardSkeleton, Card, CardGridSkeleton, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, ICON, ItemTitle, ListSkeleton, PageHeader, SearchInput, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, Card, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, ICON, ItemTitle, PageHeader, SearchInput, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, Tabs, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 import { useDebounced } from '../lib/useDebounced'
+import { DocCardsSkeleton, StudioBoardSkeleton, TimelineListSkeleton } from '../components/skeletons'
 import { useToast } from '../components/Toast'
 
 type Tab = 'projects' | 'kits' | 'references'
@@ -62,7 +63,7 @@ function Projects() {
   return (
     <>
       {isPending ? (
-        <BoardSkeleton columns={5} />
+        <StudioBoardSkeleton />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os projetos." onRetry={() => void refetch()} />
       ) : (
@@ -198,7 +199,7 @@ function Kits() {
   return (
     <>
       {isPending ? (
-        <CardGridSkeleton cards={3} />
+        <DocCardsSkeleton />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os kits." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
@@ -313,7 +314,7 @@ function References() {
         <SearchInput label="Filtrar por tag" placeholder="Filtrar por tag" value={tagText} onChange={(e) => setTagText(e.target.value)} />
       </FilterBar>
       {isPending ? (
-        <ListSkeleton rows={4} label="Carregando referências" />
+        <TimelineListSkeleton />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as referências." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (

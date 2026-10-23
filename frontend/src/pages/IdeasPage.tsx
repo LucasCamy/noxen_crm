@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Lightbulb } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { IDEA_STATUSES, PRIORITIES, ideaStatusInfo, priorityInfo } from '../lib/domain'
@@ -6,9 +6,11 @@ import { EMPTY } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useIdeas } from '../lib/queries'
 import { matches } from '../lib/search'
+import { useScrollReveal } from '../motion/hooks'
 import type { Idea, IdeaStatus, Priority } from '../lib/types'
-import { Badge, Card, CardGridSkeleton, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterSelect, ItemTitle, PageHeader, SearchInput, Segmented, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, Card, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterSelect, ItemTitle, PageHeader, SearchInput, Segmented, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
+import { IdeaCardsSkeleton } from '../components/skeletons'
 import { ClientSelect } from '../components/ClientSelect'
 
 export function IdeasPage() {
@@ -23,6 +25,8 @@ export function IdeasPage() {
     .filter((i) => (!status || i.status === status) && (!priority || i.priority === priority) && matches(q, i.title, i.notes, i.category, i.clientName, i.nextStep))
     .sort((a, b) => rank(a.priority) - rank(b.priority))
   const filtered = !!(q.trim() || status || priority)
+  const gridRef = useRef<HTMLDivElement>(null)
+  useScrollReveal(gridRef, '.card', visible.length)
   const del = useCrmMutation((i: Idea) => api.delete(`/api/ideas/${i.id}`), ['ideas'], 'Ideia excluída.', () => setDeleting(null))
 
   return (
@@ -45,7 +49,7 @@ export function IdeasPage() {
         </FilterSelect>
       </FilterBar>
       {isPending ? (
-        <CardGridSkeleton cards={6} />
+        <IdeaCardsSkeleton />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as ideias." onRetry={() => void refetch()} />
       ) : visible.length === 0 ? (
@@ -53,7 +57,7 @@ export function IdeasPage() {
           {filtered ? 'Ajuste a busca ou escolha outro status.' : 'Registre ideias de conteúdo, ofertas e melhorias para não perdê-las.'}
         </EmptyState>
       ) : (
-        <div className="card-grid">
+        <div className="card-grid" ref={gridRef}>
           {visible.map((i) => {
             const st = ideaStatusInfo(i.status)
             const p = priorityInfo(i.priority)

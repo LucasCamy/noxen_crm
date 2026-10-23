@@ -1,13 +1,15 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../lib/api'
+import { CAMPAIGN_COLUMNS, RESULT_COLUMNS, paymentColumns } from '../lib/columns'
 import { EMPTY, brl, formatDate, fromDateTimeLocal, parseMoney, todayISO, toDateTimeLocal } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useCampaigns, useMeetings, usePayments, useResults } from '../lib/queries'
 import type { Campaign, CampaignStatus, Meeting, MonthlyResult } from '../lib/types'
 import type { Tone } from '../lib/domain'
-import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, ListSkeleton, SectionTitle, SelectField, TextAreaField, TextField } from './ui'
+import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, SectionTitle, SelectField, TableHead, TableSkeleton, TextAreaField, TextField } from './ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from './common'
 import { PaymentFormDialog, PaymentsTable } from './FinanceParts'
+import { TimelineListSkeleton } from './skeletons'
 
 export function PanelHead({ title, label, action }: { title: string; label: string; action: () => void }) {
   return (
@@ -27,7 +29,7 @@ export function PaymentsPanel({ clientId }: { clientId: string }) {
     <>
       <PanelHead title="Histórico de pagamentos" label="Nova cobrança" action={() => setCreating(true)} />
       {isPending ? (
-        <ListSkeleton rows={3} label="Carregando" />
+        <TableSkeleton columns={paymentColumns(false, true)} rows={3} label="Carregando pagamentos" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os pagamentos." onRetry={() => void refetch()} />
       ) : data.items.length === 0 ? (
@@ -52,7 +54,7 @@ export function MeetingsPanel({ clientId }: { clientId: string }) {
     <>
       <PanelHead title="Reuniões" label="Nova reunião" action={() => setEditing({ meeting: null })} />
       {isPending ? (
-        <ListSkeleton rows={3} label="Carregando" />
+        <TimelineListSkeleton items={3} />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as reuniões." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
@@ -135,7 +137,7 @@ export function CampaignsPanel({ clientId }: { clientId: string }) {
     <>
       <PanelHead title="Campanhas" label="Nova campanha" action={() => setEditing({ campaign: null })} />
       {isPending ? (
-        <ListSkeleton rows={3} label="Carregando" />
+        <TableSkeleton columns={CAMPAIGN_COLUMNS} rows={3} label="Carregando campanhas" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as campanhas." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
@@ -143,19 +145,7 @@ export function CampaignsPanel({ clientId }: { clientId: string }) {
       ) : (
         <div className="table-wrap">
           <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">Campanha</th>
-                <th scope="col">Status</th>
-                <th scope="col">Período</th>
-                <th scope="col" className="num">
-                  Verba
-                </th>
-                <th scope="col">
-                  <span className="sr-only">Ações</span>
-                </th>
-              </tr>
-            </thead>
+            <TableHead columns={CAMPAIGN_COLUMNS} />
             <tbody>
               {data.map((c) => (
                 <tr key={c.id}>
@@ -262,7 +252,7 @@ export function ResultsPanel({ clientId }: { clientId: string }) {
     <>
       <PanelHead title="Resultados mensais" label="Novo resultado" action={() => setEditing({ result: null })} />
       {isPending ? (
-        <ListSkeleton rows={3} label="Carregando" />
+        <TableSkeleton columns={RESULT_COLUMNS} rows={3} label="Carregando resultados" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os resultados." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
@@ -270,21 +260,7 @@ export function ResultsPanel({ clientId }: { clientId: string }) {
       ) : (
         <div className="table-wrap">
           <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">Mês</th>
-                <th scope="col" className="num">Verba</th>
-                <th scope="col" className="num">Leads</th>
-                <th scope="col" className="num">Vendas</th>
-                <th scope="col" className="num">Faturamento</th>
-                <th scope="col" className="num">CPL</th>
-                <th scope="col" className="num">Custo/venda</th>
-                <th scope="col" className="num">ROAS</th>
-                <th scope="col">
-                  <span className="sr-only">Ações</span>
-                </th>
-              </tr>
-            </thead>
+            <TableHead columns={RESULT_COLUMNS} />
             <tbody>
               {data.map((r) => (
                 <tr key={r.id}>

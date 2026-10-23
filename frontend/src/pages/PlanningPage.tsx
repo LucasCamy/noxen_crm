@@ -8,9 +8,10 @@ import { addDaysISO, brl, dateBR, todayISO } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { usePlanning, useTasks, useUsers } from '../lib/queries'
 import type { PlanningItem, Priority, Task, TodoStatus } from '../lib/types'
-import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterCheck, FilterSelect, ListSkeleton, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
+import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterCheck, FilterSelect, PageHeader, SelectField, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, Tabs, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
+import { AgendaSkeleton, TaskListSkeleton } from '../components/skeletons'
 
 type Tab = 'agenda' | 'tasks'
 
@@ -84,7 +85,7 @@ function Agenda() {
         </FilterSelect>
       </FilterBar>
       {isPending ? (
-        <ListSkeleton rows={5} label="Carregando agenda" />
+        <AgendaSkeleton />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar a agenda." onRetry={() => void refetch()} />
       ) : groups.overdue.length === 0 && groups.days.length === 0 ? (
@@ -201,7 +202,7 @@ function Tasks() {
         <FilterCheck label="Só abertas" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} />
       </FilterBar>
       {isPending ? (
-        <ListSkeleton rows={5} label="Carregando tarefas" />
+        <TaskListSkeleton />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar as tarefas." onRetry={() => void refetch()} />
       ) : visible.length === 0 ? (

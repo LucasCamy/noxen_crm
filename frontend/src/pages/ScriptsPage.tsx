@@ -1,13 +1,32 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { ChatText, Copy } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { SCRIPT_STAGES } from '../lib/domain'
 import { useCrmMutation } from '../lib/mutations'
 import { useScripts } from '../lib/queries'
 import { matches } from '../lib/search'
+import { useScrollReveal } from '../motion/hooks'
 import type { ScriptStage, ScriptTemplate } from '../lib/types'
-import { Button, Card, CardGridSkeleton, CreateButton, Dialog, EmptyState, ErrorNote, FilterBar, FilterSelect, ICON, ItemTitle, PageHeader, SearchInput, SectionTitle, SelectField, TextAreaField, TextField } from '../components/ui'
+import {
+  Button,
+  Card,
+  CreateButton,
+  Dialog,
+  EmptyState,
+  ErrorNote,
+  FilterBar,
+  FilterSelect,
+  ICON,
+  ItemTitle,
+  PageHeader,
+  SearchInput,
+  SectionTitle,
+  SelectField,
+  TextAreaField,
+  TextField,
+} from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
+import { ScriptGroupsSkeleton } from '../components/skeletons'
 import { useToast } from '../components/Toast'
 
 export function ScriptsPage() {
@@ -21,7 +40,14 @@ export function ScriptsPage() {
   const channels = [...new Set((data ?? []).map((s) => s.channel).filter((c): c is string => !!c))].sort()
   const visible = (data ?? []).filter((s) => (!stage || s.stage === stage) && (!channel || s.channel === channel) && matches(q, s.title, s.body, s.usage, s.niche))
   const filtered = !!(q.trim() || stage || channel)
-  const del = useCrmMutation((s: ScriptTemplate) => api.delete(`/api/scripts/${s.id}`), ['scripts'], 'Script excluído.', () => setDeleting(null))
+  const listRef = useRef<HTMLDivElement>(null)
+  useScrollReveal(listRef, '.card', visible.length)
+  const del = useCrmMutation(
+    (s: ScriptTemplate) => api.delete(`/api/scripts/${s.id}`),
+    ['scripts'],
+    'Script excluído.',
+    () => setDeleting(null),
+  )
 
   async function copy(text: string) {
     try {
@@ -57,42 +83,58 @@ export function ScriptsPage() {
         </FilterSelect>
       </FilterBar>
       {isPending ? (
-        <CardGridSkeleton cards={6} />
+        <ScriptGroupsSkeleton />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os scripts." onRetry={() => void refetch()} />
       ) : visible.length === 0 ? (
-        <EmptyState icon={ChatText} title={filtered ? 'Nenhum script com esses filtros' : 'Nenhum script cadastrado'} action={filtered ? undefined : <CreateButton onClick={() => setEditing({ script: null })}>Novo script</CreateButton>}>
+        <EmptyState
+          icon={ChatText}
+          title={filtered ? 'Nenhum script com esses filtros' : 'Nenhum script cadastrado'}
+          action={filtered ? undefined : <CreateButton onClick={() => setEditing({ script: null })}>Novo script</CreateButton>}
+        >
           {filtered ? 'Ajuste a busca ou escolha outra etapa.' : 'Cadastre as mensagens que a equipe usa na abordagem, no follow-up e no fechamento.'}
         </EmptyState>
       ) : (
-        SCRIPT_STAGES.filter((st) => visible.some((s) => s.stage === st.key)).map((st) => (
-          <section key={st.key} className="script-group">
-            <SectionTitle>{st.label}</SectionTitle>
-            <div className="card-grid">
-              {visible
-                .filter((s) => s.stage === st.key)
-                .map((s) => (
-                  <Card as="article" key={s.id}>
-                    <div className="card-row">
-                      <ItemTitle>{s.title}</ItemTitle>
-                      <RowActions label={s.title} onEdit={() => setEditing({ script: s })} onDelete={() => setDeleting(s)} />
-                    </div>
-                    <p className="muted small">{[s.channel, s.niche].filter(Boolean).join(' · ')}</p>
-                    {s.usage && <p className="small">{s.usage}</p>}
-                    <pre className="script-body">{s.body}</pre>
-                    <Button size="sm" onClick={() => void copy(s.body)}>
-                      <Copy size={ICON.control} aria-hidden /> Copiar texto
-                    </Button>
-                  </Card>
-                ))}
-            </div>
-          </section>
-        ))
+        <div ref={listRef}>
+          {SCRIPT_STAGES.filter((st) => visible.some((s) => s.stage === st.key)).map((st) => (
+            <section key={st.key} className="script-group">
+              <SectionTitle>{st.label}</SectionTitle>
+              <div className="card-grid">
+                {visible
+                  .filter((s) => s.stage === st.key)
+                  .map((s) => (
+                    <Card as="article" key={s.id}>
+                      <div className="card-row">
+                        <ItemTitle>{s.title}</ItemTitle>
+                        <RowActions label={s.title} onEdit={() => setEditing({ script: s })} onDelete={() => setDeleting(s)} />
+                      </div>
+                      <p className="muted small">{[s.channel, s.niche].filter(Boolean).join(' · ')}</p>
+                      {s.usage && <p className="small">{s.usage}</p>}
+                      <pre className="script-body">{s.body}</pre>
+                      <Button size="sm" onClick={() => void copy(s.body)}>
+                        <Copy size={ICON.control} aria-hidden /> Copiar texto
+                      </Button>
+                    </Card>
+                  ))}
+              </div>
+            </section>
+          ))}
+        </div>
       )}
       <Dialog open={!!editing} onClose={() => setEditing(null)} wide title={editing?.script ? 'Editar script' : 'Novo script'}>
         {editing && <ScriptForm key={editing.script?.id ?? 'novo'} script={editing.script} onClose={() => setEditing(null)} />}
       </Dialog>
-      <ConfirmDialog open={!!deleting} title="Excluir script?" description={deleting?.title} confirmLabel="Excluir" danger busy={del.isPending} error={del.error?.message} onConfirm={() => deleting && del.mutate(deleting)} onClose={() => setDeleting(null)} />
+      <ConfirmDialog
+        open={!!deleting}
+        title="Excluir script?"
+        description={deleting?.title}
+        confirmLabel="Excluir"
+        danger
+        busy={del.isPending}
+        error={del.error?.message}
+        onConfirm={() => deleting && del.mutate(deleting)}
+        onClose={() => setDeleting(null)}
+      />
     </>
   )
 }

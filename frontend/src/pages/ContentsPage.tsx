@@ -2,12 +2,13 @@ import { useState, type FormEvent } from 'react'
 import { FilmSlate } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { CHANNELS, CONTENT_FORMATS, CONTENT_STATUSES, contentFormatLabel, contentStatusInfo } from '../lib/domain'
+import { CONTENT_COLUMNS } from '../lib/columns'
 import { EMPTY } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useContents } from '../lib/queries'
 import { matches } from '../lib/search'
 import type { ContentFormat, ContentItem, ContentStatus } from '../lib/types'
-import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterSelect, PageHeader, SearchInput, Segmented, SelectField, TableSkeleton, TextAreaField, TextField } from '../components/ui'
+import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, FilterBar, FilterSelect, PageHeader, SearchInput, Segmented, SelectField, TableHead, TableSkeleton, TextAreaField, TextField } from '../components/ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from '../components/common'
 import { ClientSelect } from '../components/ClientSelect'
 
@@ -40,7 +41,7 @@ export function ContentsPage() {
         </FilterSelect>
       </FilterBar>
       {isPending ? (
-        <TableSkeleton rows={5} cols={6} label="Carregando conteúdos" />
+        <TableSkeleton columns={CONTENT_COLUMNS} rows={5} label="Carregando conteúdos" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os conteúdos." onRetry={() => void refetch()} />
       ) : visible.length === 0 ? (
@@ -56,20 +57,7 @@ export function ContentsPage() {
       ) : (
         <div className="table-wrap">
           <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">Conteúdo</th>
-                <th scope="col">Cliente</th>
-                <th scope="col">Canal</th>
-                <th scope="col" className="num">
-                  Publicação
-                </th>
-                <th scope="col">Status</th>
-                <th scope="col">
-                  <span className="sr-only">Ações</span>
-                </th>
-              </tr>
-            </thead>
+            <TableHead columns={CONTENT_COLUMNS} />
             <tbody>
               {visible.map((c) => {
                 const st = contentStatusInfo(c.status)

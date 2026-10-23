@@ -1,14 +1,16 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../lib/api'
+import { ACCESS_COLUMNS } from '../lib/columns'
 import { STUDIO_STATUSES, contentStatusInfo, priorityInfo, studioKindLabel } from '../lib/domain'
 import { EMPTY, parseMoney } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useAccesses, useContents, useStudioProjects, useTasks } from '../lib/queries'
 import type { ClientAccess, ClientProfile, ClientProfileInput } from '../lib/types'
-import { Badge, Button, DateValue, Dialog, EmptyState, ErrorNote, ListSkeleton, TableSkeleton, TextAreaField, TextField } from './ui'
+import { Badge, Button, DateValue, Dialog, EmptyState, ErrorNote, TableHead, TableSkeleton, TextAreaField, TextField } from './ui'
 import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from './common'
 import { PanelHead } from './ClientPanels'
+import { AgendaSkeleton } from './skeletons'
 
 // ---------------------------------------------------------------- perfil (presença, negócio, marketing)
 
@@ -131,7 +133,7 @@ export function AccessesPanel({ clientId }: { clientId: string }) {
       <PanelHead title="Acessos às plataformas" label="Novo acesso" action={() => setEditing({ access: null })} />
       <p className="muted small">Não escreva senhas aqui. Registre só o que existe e onde a senha está guardada (por exemplo, "gerenciador de senhas, item X").</p>
       {isPending ? (
-        <TableSkeleton rows={3} cols={5} label="Carregando acessos" />
+        <TableSkeleton columns={ACCESS_COLUMNS} rows={3} label="Carregando acessos" />
       ) : isError ? (
         <ErrorNote message="Não foi possível carregar os acessos." onRetry={() => void refetch()} />
       ) : data.length === 0 ? (
@@ -140,20 +142,7 @@ export function AccessesPanel({ clientId }: { clientId: string }) {
         <div className="table-wrap">
           <table className="table">
             <caption className="sr-only">Acessos do cliente</caption>
-            <thead>
-              <tr>
-                <th scope="col">Plataforma</th>
-                <th scope="col">Conta ou login</th>
-                <th scope="col">Tipo de acesso</th>
-                <th scope="col">Onde está a senha</th>
-                <th scope="col" className="num">
-                  Concedido em
-                </th>
-                <th scope="col">
-                  <span className="sr-only">Ações</span>
-                </th>
-              </tr>
-            </thead>
+            <TableHead columns={ACCESS_COLUMNS} />
             <tbody>
               {data.map((a) => (
                 <tr key={a.id}>
@@ -248,7 +237,7 @@ export function DeliveriesPanel({ clientId }: { clientId: string }) {
   const projects = useStudioProjects()
   const clientProjects = (projects.data ?? []).filter((p) => p.clientId === clientId)
 
-  if (contents.isPending || tasks.isPending || projects.isPending) return <ListSkeleton rows={4} label="Carregando entregas" />
+  if (contents.isPending || tasks.isPending || projects.isPending) return <AgendaSkeleton groups={3} />
   if (contents.isError || tasks.isError || projects.isError)
     return <ErrorNote message="Não foi possível carregar as entregas." onRetry={() => void Promise.all([contents.refetch(), tasks.refetch(), projects.refetch()])} />
 

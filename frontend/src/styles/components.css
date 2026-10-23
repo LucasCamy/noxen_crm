@@ -985,3 +985,73 @@ td.row-actions {
   font-weight: 600;
   color: var(--text-2);
 }
+
+/* ============================================================ esqueletos fiéis ao layout */
+
+/* só aparece se a espera passar de ~150ms: respostas rápidas não piscam um esqueleto */
+.skeleton-root {
+  opacity: 0;
+  animation: skeleton-in var(--dur-base) var(--ease-out) 150ms forwards;
+}
+
+@keyframes skeleton-in {
+  to {
+    opacity: 1;
+  }
+}
+
+.skeleton-end {
+  margin-left: auto;
+}
+
+.cell-stack {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.header-sub-skeleton {
+  display: flex;
+  align-items: center;
+  height: var(--lh-md);
+  margin-top: var(--space-2);
+}
+
+.script-group > .skeleton-title {
+  margin-bottom: var(--space-12);
+}
+
+.skeleton-cards {
+  display: grid;
+  gap: var(--space-8);
+}
+
+/* ============================================================ movimento (GSAP + Lenis; ver src/motion) */
+
+/* progresso de leitura: fio de 2px no topo, só aparece em páginas que rolam */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-scroll);
+  height: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.scroll-progress.is-scrollable {
+  opacity: 1;
+}
+
+.scroll-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--line-focus);
+  opacity: 0.6;
+}
+
+/* entrada animada: o conteúdo fica invisível (mantendo o espaço) só até a linha do tempo começar */
+.intro-pending {
+  visibility: hidden;
+}

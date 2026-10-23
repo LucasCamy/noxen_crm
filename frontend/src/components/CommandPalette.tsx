@@ -82,7 +82,7 @@ export function CommandPalette({ open, onClose, commands }: Props) {
   }
 
   return (
-    <dialog
+    <dialog data-lenis-prevent
       ref={ref}
       className="palette"
       aria-label="Paleta de comandos"

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { MagicWand, Wallet } from '@phosphor-icons/react'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../lib/api'
+import { ledgerColumns, paymentColumns } from '../lib/columns'
 import { brl, todayISO } from '../lib/format'
 import { useCrmMutation } from '../lib/mutations'
 import { useFinanceSummary, useLedger, usePayments } from '../lib/queries'
@@ -87,7 +88,7 @@ export function FinancePage() {
 
       {tab === 'payments' ? (
         payments.isPending ? (
-          <TableSkeleton rows={4} cols={5} label="Carregando cobranças" />
+          <TableSkeleton columns={paymentColumns(true, true)} rows={4} label="Carregando cobranças" />
         ) : payments.isError ? (
           <ErrorNote message="Não foi possível carregar as cobranças." onRetry={() => void payments.refetch()} />
         ) : payments.data.items.length === 0 ? (
@@ -102,7 +103,7 @@ export function FinancePage() {
           <PaymentsTable payments={payments.data.items} showClient canManage />
         )
       ) : ledger.isPending ? (
-        <TableSkeleton rows={4} cols={5} label="Carregando lançamentos" />
+        <TableSkeleton columns={ledgerColumns(true)} rows={4} label="Carregando lançamentos" />
       ) : ledger.isError ? (
         <ErrorNote message="Não foi possível carregar os lançamentos." onRetry={() => void ledger.refetch()} />
       ) : ledger.data.items.length === 0 ? (

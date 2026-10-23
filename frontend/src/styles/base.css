@@ -6,6 +6,10 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+}
+
+/* sem a camada de movimento (toque, movimento reduzido) o navegador suaviza âncoras; com Lenis ele assume a rolagem */
+html:not(.lenis) {
   scroll-behavior: smooth;
 }
 

@@ -1,11 +1,14 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError } from '../lib/api'
 import { Check } from '@phosphor-icons/react'
 import { Button, ErrorNote, ICON, TextField } from '../components/ui'
+import { useLoginIntro } from '../motion/hooks'
 
 export function LoginPage() {
+  const loginRef = useRef<HTMLDivElement>(null)
+  useLoginIntro(loginRef)
   const { status, signIn } = useAuth()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? '/'
@@ -34,7 +37,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="login">
+    <div className="login" ref={loginRef}>
       <section className="login-brand" aria-hidden>
         <div className="brand">
           <span className="brand-mark">N</span>

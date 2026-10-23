@@ -8,11 +8,12 @@ import { CLIENT_STATUSES, clientStatusInfo } from '../lib/domain'
 import { EMPTY, brl, safeUrl, whatsappUrl } from '../lib/format'
 import { useClient, useClientProfile, useUsers } from '../lib/queries'
 import type { Client, ClientStatus } from '../lib/types'
-import { Badge, Button, ButtonLink, Card, DateValue, ErrorNote, ICON, ListSkeleton, PageHeader, Skeleton } from '../components/ui'
+import { Badge, Button, ButtonLink, Card, DateValue, ErrorNote, ICON, PageHeader } from '../components/ui'
 import { ClientForm } from '../components/ClientForm'
 import { CampaignsPanel, MeetingsPanel, PaymentsPanel, ResultsPanel } from '../components/ClientPanels'
 import { AccessesPanel, DeliveriesPanel, ProfilePanel } from '../components/ClientProfilePanels'
 import { ConfirmDialog, Tabs } from '../components/common'
+import { FormCardSkeleton, RouteSkeleton } from '../components/skeletons'
 import { useToast } from '../components/Toast'
 
 type DetailTab = 'overview' | 'profile' | 'accesses' | 'payments' | 'meetings' | 'campaigns' | 'results' | 'deliveries'
@@ -44,27 +45,7 @@ export function ClientDetailPage() {
     },
   })
 
-  if (isPending)
-    return (
-      <div role="status" aria-live="polite" aria-label="Carregando cliente">
-        <Skeleton h={14} w={80} />
-        <div className="page-header" aria-hidden>
-          <Skeleton h={28} w={280} r={6} />
-        </div>
-        <div className="detail-grid" aria-hidden>
-          <div className="card skeleton-stack">
-            {Array.from({ length: 8 }, (_, i) => (
-              <Skeleton key={i} h={36} r={8} />
-            ))}
-          </div>
-          <div className="card skeleton-stack">
-            {Array.from({ length: 6 }, (_, i) => (
-              <Skeleton key={i} h={16} w={`${60 + ((i * 9) % 35)}%`} />
-            ))}
-          </div>
-        </div>
-      </div>
-    )
+  if (isPending) return <RouteSkeleton pathname={`/clients/${id}`} />
   if (error || !client) {
     const notFound = error instanceof ApiError && error.status === 404
     return (
@@ -219,7 +200,7 @@ export function ClientDetailPage() {
           ) : profile.isError ? (
             <ErrorNote message="Não foi possível carregar o perfil." onRetry={() => void profile.refetch()} />
           ) : (
-            <ListSkeleton rows={6} label="Carregando perfil" />
+            <FormCardSkeleton fields={10} />
           )}
         </Card>
       )}

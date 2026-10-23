@@ -17,7 +17,7 @@ interface DialogProps {
 const EXIT_MS = 200
 
 /**
- * Diálogo nativo (<dialog>): foco preso, Esc fecha, fundo inerte. A entrada e a saída são transições CSS
+ * Diálogo nativo (<dialog data-lenis-prevent>): foco preso, Esc fecha, fundo inerte. A entrada e a saída são transições CSS
  * (interrompíveis); o conteúdo continua montado por um instante na saída para não "piscar" vazio.
  */
 export function Dialog({ open, onClose, title, description, wide, children }: DialogProps) {

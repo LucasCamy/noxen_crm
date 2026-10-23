@@ -21,7 +21,8 @@ import { brl, dateShort, isOverdue } from '../lib/format'
 import { fetchLeads, leadsKey, useUsers } from '../lib/queries'
 import { useDebounced } from '../lib/useDebounced'
 import type { Lead, LeadStage, UserLookup } from '../lib/types'
-import { Avatar, BoardSkeleton, CreateButton, ErrorNote, FilterBar, FilterCheck, ICON, PageHeader, SearchInput, Skeleton } from '../components/ui'
+import { Avatar, CreateButton, ErrorNote, FilterBar, FilterCheck, ICON, PageHeader, SearchInput } from '../components/ui'
+import { LeadCardsSkeleton, LeadsBoardSkeleton } from '../components/skeletons'
 import { useToast } from '../components/Toast'
 import { ConvertDialog, LeadDialog, LostDialog } from '../components/LeadDialogs'
 
@@ -111,10 +112,7 @@ function Column({ stage, leads, total, loading, failed, retry, users, canDrag, o
         {failed ? (
           <ErrorNote message="Falha ao carregar." onRetry={retry} />
         ) : loading ? (
-          <div className="skeleton-stack" role="status" aria-label={`Carregando ${stage.label}`}>
-            <Skeleton h={64} r={8} />
-            <Skeleton h={64} r={8} />
-          </div>
+          <LeadCardsSkeleton label={`Carregando ${stage.label}`} />
         ) : leads.length === 0 ? (
           <p className="column-empty">{canDrag ? 'Solte um lead aqui' : 'Nenhum lead'}</p>
         ) : (
@@ -258,7 +256,7 @@ export function LeadsPage() {
 
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragging(null)} accessibility={accessibility}>
         {allPending ? (
-          <BoardSkeleton columns={OPEN_STAGES.length} />
+          <LeadsBoardSkeleton />
         ) : (
           <>
             <div className="board" role="group" aria-label="Funil de leads" style={{ ['--cols' as string]: OPEN_STAGES.length }}>

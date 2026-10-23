@@ -1,52 +1,15 @@
+import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, CheckCircle } from '@phosphor-icons/react'
 import { useDashboard, usePlanning } from '../lib/queries'
 import { addDaysISO, brl, dateBR, daysUntil, formatDate, timeBR, todayISO } from '../lib/format'
 import { CLIENT_STATUSES, STAGES, type Tone } from '../lib/domain'
-import { Badge, Card, EmptyState, ErrorNote, ICON, PageHeader, SectionTitle, Skeleton } from '../components/ui'
+import { Badge, Card, EmptyState, ErrorNote, ICON, PageHeader, SectionTitle } from '../components/ui'
 import type { PlanningItem } from '../lib/types'
+import { RouteSkeleton, TodayListSkeleton } from '../components/skeletons'
+import { useDashboardIntro } from '../motion/hooks'
 
 const KIND_TONE: Record<string, Tone> = { Tarefa: 'brand', 'Follow-up': 'info', Reunião: 'teal', Vencimento: 'warning', Conteúdo: 'neutral' }
-
-function DashboardSkeleton() {
-  return (
-    <div className="dash" role="status" aria-live="polite" aria-label="Carregando painel">
-      <div className="card card-none goal" aria-hidden>
-        <div className="goal-main">
-          <Skeleton h={14} w={180} />
-          <Skeleton h={52} w={140} r={8} />
-          <Skeleton h={8} />
-          <Skeleton h={12} w={220} />
-        </div>
-        <div className="goal-side">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="stat">
-              <Skeleton h={12} w={100} />
-              <Skeleton h={22} w={110} r={6} />
-              <Skeleton h={12} w={160} />
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="dash-cols" aria-hidden>
-        <div className="card">
-          <div className="skeleton-stack">
-            {Array.from({ length: 7 }, (_, i) => (
-              <Skeleton key={i} h={12} w={`${40 + ((i * 17) % 55)}%`} />
-            ))}
-          </div>
-        </div>
-        <div className="card">
-          <div className="skeleton-stack">
-            {Array.from({ length: 5 }, (_, i) => (
-              <Skeleton key={i} h={32} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function TodayList({ items }: { items: PlanningItem[] }) {
   if (items.length === 0)
@@ -74,14 +37,10 @@ export function DashboardPage() {
   const { data, error, isPending, refetch } = useDashboard()
   const today = todayISO()
   const agenda = usePlanning(today, addDaysISO(today, 7))
+  const dashRef = useRef<HTMLDivElement>(null)
+  useDashboardIntro(dashRef, !isPending && !!data)
 
-  if (isPending)
-    return (
-      <>
-        <PageHeader title="Painel" subtitle="Carregando a situação da carteira…" />
-        <DashboardSkeleton />
-      </>
-    )
+  if (isPending) return <RouteSkeleton pathname="/" />
   if (error || !data) return <ErrorNote message="Não foi possível carregar o painel." onRetry={() => void refetch()} />
 
   const target = Math.max(data.targetClients, 1)
@@ -96,12 +55,14 @@ export function DashboardPage() {
     <>
       <PageHeader title="Painel" subtitle={`Meta: ${data.targetClients} clientes ativos até ${dateBR(data.deadline)}`} />
 
-      <div className="dash">
+      <div className="dash" ref={dashRef}>
         <Card padding="none" className="goal" aria-labelledby="goal-title">
           <div className="goal-main">
             <SectionTitle id="goal-title">Clientes ativos</SectionTitle>
             <div className="goal-figure">
-              <span className="goal-value">{data.activeClients}</span>
+              <span className="goal-value" data-count={data.activeClients}>
+                {data.activeClients}
+              </span>
               <span className="goal-of">de {data.targetClients}</span>
             </div>
             {data.targetClients <= 24 ? (
@@ -125,12 +86,16 @@ export function DashboardPage() {
           <div className="goal-side">
             <div className="stat">
               <span className="stat-label">Receita recorrente (MRR)</span>
-              <span className="stat-value">{brl(data.mrr)}</span>
+              <span className="stat-value" data-count={data.mrr} data-format="brl">
+                {brl(data.mrr)}
+              </span>
               <span className="stat-caption">Mensalidades dos clientes ativos</span>
             </div>
             <div className="stat">
               <span className="stat-label">Leads em aberto</span>
-              <span className="stat-value">{data.openLeads}</span>
+              <span className="stat-value" data-count={data.openLeads}>
+                {data.openLeads}
+              </span>
               <span className="stat-caption">Pipeline estimado de {brl(data.openPipelineValue)}</span>
             </div>
             <div className="stat">
@@ -208,11 +173,7 @@ export function DashboardPage() {
             }
           >
             {agenda.isPending ? (
-              <div className="skeleton-stack" role="status" aria-live="polite" aria-label="Carregando agenda">
-                {Array.from({ length: 5 }, (_, i) => (
-                  <Skeleton key={i} h={34} />
-                ))}
-              </div>
+              <TodayListSkeleton />
             ) : agenda.isError ? (
               <ErrorNote message="Não foi possível carregar a agenda." onRetry={() => void agenda.refetch()} />
             ) : (
