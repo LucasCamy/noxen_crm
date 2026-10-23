@@ -91,6 +91,17 @@ export interface LeadStageChange {
   changedAt: string
 }
 
+/** Linha do histórico do lead: mudança de etapa (stage) ou anotação (note). */
+export interface LeadTimelineItem {
+  kind: 'stage' | 'note'
+  at: string
+  byId: string | null
+  from: LeadStage | null
+  to: LeadStage | null
+  noteId: string | null
+  text: string | null
+}
+
 export interface Client {
   id: string
   leadId: string | null
@@ -102,6 +113,12 @@ export interface Client {
   state: string | null
   contactName: string | null
   contactWhatsapp: string | null
+  contactEmail: string | null
+  contractedServices: string | null
+  paymentMethod: string | null
+  contractStart: string | null
+  contractEnd: string | null
+  readjustment: string | null
   status: ClientStatus
   implementationFee: number
   monthlyFee: number
@@ -124,6 +141,12 @@ export interface ClientInput {
   state: string | null
   contactName: string | null
   contactWhatsapp: string | null
+  contactEmail: string | null
+  contractedServices: string | null
+  paymentMethod: string | null
+  contractStart: string | null
+  contractEnd: string | null
+  readjustment: string | null
   implementationFee: number
   monthlyFee: number
   dueDay: number
@@ -388,4 +411,42 @@ export interface PlanningItem {
   link: string
   overdue: boolean
   amount: number | null
+}
+
+// ---------------------------------------------------------------- ficha do cliente: perfil e acessos
+
+export interface ClientProfile {
+  clientId: string
+  website: string | null
+  instagram: string | null
+  facebook: string | null
+  tikTok: string | null
+  whatTheySell: string | null
+  idealCustomer: string | null
+  differentiators: string | null
+  competitors: string | null
+  seasonality: string | null
+  mainGoal: string | null
+  needs: string | null
+  toneOfVoice: string | null
+  contentPillars: string | null
+  whatWorked: string | null
+  adBudget: number | null
+  updatedAt: string | null
+  /** 0 enquanto a ficha ainda não foi gravada. */
+  version: number
+}
+
+export type ClientProfileInput = Omit<ClientProfile, 'clientId' | 'updatedAt' | 'version'>
+
+export interface ClientAccess {
+  id: string
+  clientId: string
+  platform: string
+  account: string | null
+  accessType: string | null
+  passwordLocation: string | null
+  grantedOn: string | null
+  note: string | null
+  version: number
 }

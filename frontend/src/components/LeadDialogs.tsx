@@ -3,12 +3,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { WhatsappLogo } from '@phosphor-icons/react'
 import { api, ApiError } from '../lib/api'
 import { BRAZILIAN_STATES, SOURCES, STAGES, moveError, stageInfo } from '../lib/domain'
-import { brl, formatDate, parseMoney, whatsappUrl } from '../lib/format'
-import { useLeadHistory } from '../lib/queries'
+import { brl, parseMoney, whatsappUrl } from '../lib/format'
 import type { Client, Lead, LeadInput, LeadSource, LeadStage, UserLookup } from '../lib/types'
-import { Badge, Button, ButtonLink, Dialog, ErrorNote, ICON, Loading, SectionTitle, SelectField, TextAreaField, TextField } from './ui'
+import { Badge, Button, ButtonLink, Dialog, ErrorNote, ICON, SelectField, TextAreaField, TextField } from './ui'
 import { useToast } from './Toast'
 import { MessageComposer } from './MessageComposer'
+import { LeadTimeline } from './LeadTimeline'
 import { ConfirmDialog } from './common'
 import { useAuth } from '../auth/AuthContext'
 
@@ -17,7 +17,7 @@ function useInvalidateCrm() {
   return () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ['leads'] }),
-      queryClient.invalidateQueries({ queryKey: ['lead-history'] }),
+      queryClient.invalidateQueries({ queryKey: ['lead-timeline'] }),
       queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       queryClient.invalidateQueries({ queryKey: ['clients'] }),
     ])
@@ -102,7 +102,6 @@ function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: Lea
   })
   const [values, setValues] = useState(() => toForm(lead, currentUserId))
   const [valueError, setValueError] = useState<string | undefined>()
-  const history = useLeadHistory(lead?.id ?? null)
   const set = <K extends keyof LeadFormValues>(key: K) => (e: { target: { value: string } }) =>
     setValues((v) => ({ ...v, [key]: e.target.value as LeadFormValues[K] }))
 
@@ -207,29 +206,7 @@ function LeadForm({ lead, users, currentUserId, canWrite, onClose, onMove }: Lea
 
       {save.error && !(save.error instanceof ApiError && save.error.status === 409) && <ErrorNote message={messageOf(save.error)} />}
 
-      {lead && (
-        <section className="history" aria-label="Histórico de etapas">
-          <SectionTitle as="h3">Histórico</SectionTitle>
-          {history.isPending ? (
-            <Loading label="Carregando histórico" />
-          ) : history.data && history.data.length > 0 ? (
-            <ol>
-              {history.data.map((h, i) => (
-                <li key={i}>
-                  <span>
-                    {stageInfo(h.from).label} → <strong>{stageInfo(h.to).label}</strong>
-                  </span>
-                  <span className="muted small">
-                    {formatDate(h.changedAt, "datetime")} · {userName(h.changedById)}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="muted small">Ainda sem movimentações. Criado em {formatDate(lead.createdAt, "datetime")}.</p>
-          )}
-        </section>
-      )}
+      {lead && <LeadTimeline lead={lead} userName={userName} />}
 
       {lead && canWrite && lead.stage !== 'Fechado' && <MessageComposer lead={lead} />}
 

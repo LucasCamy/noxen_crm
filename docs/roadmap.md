@@ -8,6 +8,7 @@ Mapeia as seções do CRM original ([central/LEIA-ME.md](../reference/noxencrm-o
 | 2 | Financeiro: cobranças por cliente (atraso derivado, mensalidade gerada pelo Worker), receitas avulsas, despesas e resumo do mês; reuniões, campanhas e resultados mensais por cliente; gestão de usuários | `clientes/*/financeiro.md`, `reunioes.md`, `campanhas.md`, `resultados.md`, `crm/financeiro-noxen.md` | **Concluída** |
 | 3 | Planejamento (agenda unificada + tarefas), conteúdos, ideias, scripts comerciais com gerador de mensagem de abordagem no lead, base estratégica | `central/conteudo/*.md`, `mensagens-prospeccao.json` | **Concluída** |
 | 4 | Estúdio criativo: projetos (briefing → entregue), kits de marca e referências, **por link** | `estudio.json` | **Concluída** (sem upload de arquivos) |
+| 5 | Ficha completa do cliente (contrato, perfil de negócio e marketing, acessos sem senhas) e anotações no histórico do lead | `perfil.md`, `financeiro.md`, `acessos.md`, "Atualizar andamento" | **Concluída** (ADR-0009) |
 | 4 | Buscador de empresas (Google Maps) | `ferramentas/google-maps-scraper-kit` | **Não será feito como no original** (ver abaixo) |
 | — | Importador dos arquivos `.md` do original para o banco | `modelos/crm`, dados reais fora do git | Não iniciado; exige os dados reais e cuidado com LGPD |
 

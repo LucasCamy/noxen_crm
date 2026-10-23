@@ -138,3 +138,5 @@ export const STUDIO_KINDS: { key: StudioKind; label: string }[] = [
   { key: 'Outro', label: 'Outro' },
 ]
 export const studioKindLabel = (k: StudioKind) => STUDIO_KINDS.find((x) => x.key === k)?.label ?? k
+
+export const PAYMENT_METHODS = ['Pix', 'Boleto', 'Cartão', 'Transferência', 'Dinheiro']

@@ -4,6 +4,7 @@ using Noxen.Crm.Api.Auth;
 using Noxen.Crm.Api.Common;
 using Noxen.Crm.Api.Clients;
 using Noxen.Crm.Domain.Clients;
+using Noxen.Crm.Domain.Identity;
 using Noxen.Crm.Domain.Leads;
 using Noxen.Crm.Infrastructure.Messaging;
 using Noxen.Crm.Infrastructure.Persistence;
@@ -54,6 +55,16 @@ public sealed record LeadResponse(
 
 public sealed record LeadStageChangeResponse(LeadStage From, LeadStage To, Guid? ChangedById, DateTimeOffset ChangedAt);
 
+public sealed record LeadNoteInput([Required, MaxLength(LeadNote.MaxLength)] string Text);
+
+public sealed record LeadNoteResponse(Guid Id, Guid LeadId, string Text, Guid? CreatedById, DateTimeOffset CreatedAt)
+{
+    public static LeadNoteResponse From(LeadNote n) => new(n.Id, n.LeadId, n.Text, n.CreatedById, n.CreatedAt);
+}
+
+/// <summary>Linha do histórico do lead: uma mudança de etapa (Kind = "stage") ou uma anotação (Kind = "note").</summary>
+public sealed record LeadTimelineItem(string Kind, DateTimeOffset At, Guid? ById, LeadStage? From, LeadStage? To, Guid? NoteId, string? Text);
+
 public static class LeadEndpoints
 {
     public static void MapLeads(this IEndpointRouteBuilder app)
@@ -74,6 +85,10 @@ public static class LeadEndpoints
                 .ToListAsync();
             return Results.Ok(history);
         });
+
+        group.MapGet("/{id:guid}/timeline", Timeline);
+        group.MapPost("/{id:guid}/notes", AddNote).RequireAuthorization(Policies.CanWriteCrm);
+        app.MapDelete("/api/lead-notes/{id:guid}", RemoveNote).WithTags("Leads").RequireAuthorization(Policies.CanWriteCrm);
 
         group.MapPost("/", Create).RequireAuthorization(Policies.CanWriteCrm);
         group.MapPut("/{id:guid}", Update).RequireAuthorization(Policies.CanWriteCrm);
@@ -103,6 +118,39 @@ public static class LeadEndpoints
             .ThenByDescending(l => l.CreatedAt).ThenBy(l => l.Id)
             .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         return Results.Ok(new PagedResult<LeadResponse>(items.Select(LeadResponse.From).ToList(), total, page, pageSize));
+    }
+
+    /// <summary>Histórico completo do lead: mudanças de etapa e anotações, da mais antiga para a mais nova.</summary>
+    private static async Task<IResult> Timeline(Guid id, CrmDbContext db)
+    {
+        if (!await db.Leads.AnyAsync(l => l.Id == id)) return Results.NotFound();
+        var stages = await db.LeadStageChanges.AsNoTracking().Where(c => c.LeadId == id).ToListAsync();
+        var notes = await db.LeadNotes.AsNoTracking().Where(n => n.LeadId == id).ToListAsync();
+        var items = stages.Select(c => new LeadTimelineItem("stage", c.ChangedAt, c.ChangedById, c.FromStage, c.ToStage, null, null))
+            .Concat(notes.Select(n => new LeadTimelineItem("note", n.CreatedAt, n.CreatedById, null, null, n.Id, n.Text)))
+            .OrderBy(i => i.At).ToList();
+        return Results.Ok(items);
+    }
+
+    private static async Task<IResult> AddNote(
+        Guid id, LeadNoteInput input, CrmDbContext db, TimeProvider clock, System.Security.Claims.ClaimsPrincipal user)
+    {
+        if (!await db.Leads.AnyAsync(l => l.Id == id)) return Results.NotFound();
+        var note = LeadNote.Create(id, input.Text, user.GetUserId(), clock.GetUtcNow());
+        db.LeadNotes.Add(note);
+        await db.SaveChangesAsync();
+        return Results.Created($"/api/leads/{id}/timeline", LeadNoteResponse.From(note));
+    }
+
+    /// <summary>Quem escreveu a anotação ou um Admin pode apagá-la.</summary>
+    private static async Task<IResult> RemoveNote(Guid id, CrmDbContext db, System.Security.Claims.ClaimsPrincipal user)
+    {
+        var note = await db.LeadNotes.SingleOrDefaultAsync(n => n.Id == id);
+        if (note is null) return Results.NotFound();
+        if (!user.IsInRole(Roles.Admin) && note.CreatedById != user.GetUserId()) return Results.Forbid();
+        db.LeadNotes.Remove(note);
+        await db.SaveChangesAsync();
+        return Results.NoContent();
     }
 
     private static async Task<IResult> Create(LeadInput input, CrmDbContext db, TimeProvider clock, System.Security.Claims.ClaimsPrincipal user)

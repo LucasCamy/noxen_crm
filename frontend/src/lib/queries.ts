@@ -4,6 +4,8 @@ import type {
   BrandKit,
   Campaign,
   Client,
+  ClientAccess,
+  ClientProfile,
   ClientStatus,
   ContentItem,
   FinanceSummary,
@@ -11,7 +13,7 @@ import type {
   KnowledgeDoc,
   Lead,
   LeadStage,
-  LeadStageChange,
+  LeadTimelineItem,
   LedgerEntry,
   Meeting,
   MonthlyResult,
@@ -34,10 +36,11 @@ export function fetchLeads(stage: LeadStage | null, search: string, ownerId: str
   return api.get<Paged<Lead>>(`/api/leads${qs({ stage, search, ownerId, pageSize })}`)
 }
 
-export function useLeadHistory(leadId: string | null) {
+/** Histórico do lead: mudanças de etapa e anotações, em ordem de data. */
+export function useLeadTimeline(leadId: string | null) {
   return useQuery({
-    queryKey: ['lead-history', leadId],
-    queryFn: () => api.get<LeadStageChange[]>(`/api/leads/${leadId}/history`),
+    queryKey: ['lead-timeline', leadId],
+    queryFn: () => api.get<LeadTimelineItem[]>(`/api/leads/${leadId}/timeline`),
     enabled: !!leadId,
   })
 }
@@ -153,4 +156,16 @@ export function useReferences(tag: string) {
 
 export function usePlanning(from: string, to: string) {
   return useQuery({ queryKey: ['planning', from, to], queryFn: () => api.get<PlanningItem[]>(`/api/planning${qs({ from, to })}`) })
+}
+
+export function useClientProfile(clientId: string | undefined) {
+  return useQuery({
+    queryKey: ['client-profile', clientId],
+    queryFn: () => api.get<ClientProfile>(`/api/clients/${clientId}/profile`),
+    enabled: !!clientId,
+  })
+}
+
+export function useAccesses(clientId: string) {
+  return useQuery({ queryKey: ['accesses', clientId], queryFn: () => api.get<ClientAccess[]>(`/api/clients/${clientId}/accesses`) })
 }

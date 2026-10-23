@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../lib/api'
-import { BRAZILIAN_STATES } from '../lib/domain'
+import { BRAZILIAN_STATES, PAYMENT_METHODS } from '../lib/domain'
 import { fromDateTimeLocal, parseMoney, toDateTimeLocal } from '../lib/format'
 import type { Client, ClientInput, UserLookup } from '../lib/types'
 import { ErrorNote, SelectField, TextAreaField, TextField, Button } from './ui'
@@ -16,6 +16,12 @@ interface Values {
   state: string
   contactName: string
   contactWhatsapp: string
+  contactEmail: string
+  contractedServices: string
+  paymentMethod: string
+  contractStart: string
+  contractEnd: string
+  readjustment: string
   implementationFee: string
   monthlyFee: string
   dueDay: string
@@ -36,6 +42,12 @@ function toValues(c: Client | undefined, defaultResponsible: string): Values {
     state: c?.state ?? '',
     contactName: c?.contactName ?? '',
     contactWhatsapp: c?.contactWhatsapp ?? '',
+    contactEmail: c?.contactEmail ?? '',
+    contractedServices: c?.contractedServices ?? '',
+    paymentMethod: c?.paymentMethod ?? '',
+    contractStart: c?.contractStart ?? '',
+    contractEnd: c?.contractEnd ?? '',
+    readjustment: c?.readjustment ?? '',
     implementationFee: money(c?.implementationFee),
     monthlyFee: money(c?.monthlyFee),
     dueDay: String(c?.dueDay ?? 10),
@@ -89,6 +101,9 @@ export function ClientForm({ client, users, currentUserId, canWrite, onSaved, on
     if (values.name.trim() === '') next.name = 'Informe o nome.'
     if (monthlyFee === null || monthlyFee < 0) next.monthlyFee = 'Informe a mensalidade.'
     if (implementationFee < 0) next.implementationFee = 'Não pode ser negativo.'
+    const email = values.contactEmail.trim()
+    if (email !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.contactEmail = 'Informe um e-mail válido.'
+    if (values.contractStart && values.contractEnd && values.contractEnd < values.contractStart) next.contractEnd = 'O fim não pode ser antes do início.'
     const cnpjDigits = values.cnpj.replace(/\D/g, '')
     if (cnpjDigits !== '' && cnpjDigits.length !== 14) next.cnpj = 'O CNPJ precisa ter 14 dígitos.'
     setErrors(next)
@@ -104,6 +119,12 @@ export function ClientForm({ client, users, currentUserId, canWrite, onSaved, on
       state: blank(values.state),
       contactName: blank(values.contactName),
       contactWhatsapp: blank(values.contactWhatsapp),
+      contactEmail: blank(values.contactEmail),
+      contractedServices: blank(values.contractedServices),
+      paymentMethod: blank(values.paymentMethod),
+      contractStart: blank(values.contractStart),
+      contractEnd: blank(values.contractEnd),
+      readjustment: blank(values.readjustment),
       implementationFee,
       monthlyFee: monthlyFee!,
       dueDay: Number(values.dueDay),
@@ -140,8 +161,13 @@ export function ClientForm({ client, users, currentUserId, canWrite, onSaved, on
             </option>
           ))}
         </SelectField>
+        <h3 className="form-section">Contato</h3>
         <TextField label="Contato principal" maxLength={150} value={values.contactName} onChange={set('contactName')} />
         <TextField label="WhatsApp do contato" inputMode="tel" maxLength={30} value={values.contactWhatsapp} onChange={set('contactWhatsapp')} />
+        <div className="span-2">
+          <TextField label="E-mail do contato" type="email" maxLength={200} value={values.contactEmail} onChange={set('contactEmail')} error={errors.contactEmail} />
+        </div>
+        <h3 className="form-section">Contrato</h3>
         <TextField label="Implementação (R$)" inputMode="decimal" value={values.implementationFee} onChange={set('implementationFee')} error={errors.implementationFee} />
         <TextField label="Mensalidade (R$)" inputMode="decimal" required value={values.monthlyFee} onChange={set('monthlyFee')} error={errors.monthlyFee} />
         <SelectField label="Dia de vencimento" value={values.dueDay} onChange={set('dueDay')}>
@@ -149,6 +175,19 @@ export function ClientForm({ client, users, currentUserId, canWrite, onSaved, on
             <option key={d}>{d}</option>
           ))}
         </SelectField>
+        <SelectField label="Forma de pagamento" value={values.paymentMethod} onChange={set('paymentMethod')}>
+          <option value="">—</option>
+          {[...PAYMENT_METHODS, ...(values.paymentMethod && !PAYMENT_METHODS.includes(values.paymentMethod) ? [values.paymentMethod] : [])].map((m) => (
+            <option key={m}>{m}</option>
+          ))}
+        </SelectField>
+        <TextField label="Início do contrato" type="date" value={values.contractStart} onChange={set('contractStart')} />
+        <TextField label="Fim do contrato / fidelidade" type="date" value={values.contractEnd} onChange={set('contractEnd')} error={errors.contractEnd} />
+        <TextField label="Reajuste" maxLength={300} value={values.readjustment} onChange={set('readjustment')} placeholder="Ex.: IPCA em outubro" />
+        <div className="span-2">
+          <TextAreaField label="Serviços contratados" rows={3} maxLength={2000} value={values.contractedServices} onChange={set('contractedServices')} />
+        </div>
+        <h3 className="form-section">Acompanhamento</h3>
         <TextField label="Próxima reunião" type="datetime-local" value={values.nextMeeting} onChange={set('nextMeeting')} />
         <div className="span-2">
           <TextAreaField label="Observações" rows={3} maxLength={4000} value={values.notes} onChange={set('notes')} />

@@ -176,7 +176,7 @@ export function LeadsPage() {
     onSuccess: async (updated) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['leads'] }),
-        queryClient.invalidateQueries({ queryKey: ['lead-history'] }),
+        queryClient.invalidateQueries({ queryKey: ['lead-timeline'] }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ])
       toast(`${updated.company} movido para ${stageInfo(updated.stage).label}.`)

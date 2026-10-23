@@ -8,7 +8,7 @@ Legenda: **Tem** (equivalente ou melhor), **Parcial**, **Falta**.
 
 - O núcleo do negócio existe: meta de clientes ativos, MRR, funil de leads, carteira, mensalidades, receitas e despesas, reuniões, campanhas e resultados, tarefas, scripts, conteúdos, ideias, base e estúdio.
 - A reescrita acrescenta o que os arquivos não tinham: login e papéis, vários usuários ao mesmo tempo sem conflito, histórico confiável, cobranças geradas sozinhas, eventos e cache.
-- O que falta é principalmente **profundidade de cadastro** (a ficha do cliente e do lead do original tem muito mais campos), **visões** (lista da prospecção, calendário mensal, detalhe de conteúdo), **arquivos** (envio de imagens e vídeos no Estúdio) e o **buscador/importação de empresas**.
+- O que falta é principalmente **campos extras do lead**, **visões** (lista da prospecção, calendário mensal, detalhe de conteúdo), **arquivos** (envio de imagens e vídeos no Estúdio) e o **buscador/importação de empresas**.
 
 ## Por módulo
 
@@ -29,7 +29,7 @@ Legenda: **Tem** (equivalente ou melhor), **Parcial**, **Falta**.
 |---|---|
 | Etapas A contatar até Fechado/Perdido, origem, valor estimado, contato, WhatsApp, Instagram | Tem (em quadro Kanban com arrastar e soltar, também por teclado) |
 | Lista com contadores por status, busca, filtro por grupo/nicho, "só retornos até hoje" | Parcial: busca, "só meus leads" e quadro; sem lista, sem grupo/nicho, sem filtro de retorno vencido |
-| Atualizar andamento com **anotação** que vai para o histórico | Parcial: histórico só de mudanças de etapa; sem anotação livre |
+| Atualizar andamento com **anotação** que vai para o histórico | Tem (anotações no histórico do lead, junto das mudanças de etapa; adicionado em 2026-10-23) |
 | Mensagem personalizada por lead e botões WhatsApp / Direct do Instagram / copiar | Parcial: mensagem montada a partir dos scripts (com `{{empresa}}`, `{{contato}}`, `{{meu_nome}}`), WhatsApp e copiar; sem abrir Direct do Instagram |
 | Campos "anuncia na Meta?", gancho/informação relevante, envio planejado, grupo | Falta |
 | Tarefas, materiais e scripts relacionados ao lead | Falta na tela do lead (a tarefa já aceita vínculo com lead no banco) |
@@ -41,15 +41,15 @@ Legenda: **Tem** (equivalente ou melhor), **Parcial**, **Falta**.
 |---|---|
 | Lista em cartões com filtros | Tem (tabela, busca e status) |
 | Ficha: contato, razão social/CNPJ, cliente desde, responsável | Tem |
-| Site, Instagram, Facebook, TikTok; botões Instagram, site e copiar e-mail | Falta |
-| Contrato: serviços contratados, forma de pagamento, início, fidelidade, reajuste | Parcial: mensalidade, implementação e vencimento sim; o resto não |
-| Negócio: o que vende, cliente ideal, diferenciais, concorrentes, sazonalidade, objetivo, necessidades | Falta (há só o campo de observações) |
-| Marketing: tom de voz, pilares de conteúdo, o que funcionou, verba de anúncios | Falta |
-| Acessos às plataformas (sem senhas) | Falta |
+| Site, Instagram, Facebook, TikTok; botões Instagram, site e copiar e-mail | Tem (perfil do cliente e atalhos no cabeçalho da ficha; 2026-10-23) |
+| Contrato: serviços contratados, forma de pagamento, início, fidelidade, reajuste | Tem (2026-10-23) |
+| Negócio: o que vende, cliente ideal, diferenciais, concorrentes, sazonalidade, objetivo, necessidades | Tem (aba Perfil; 2026-10-23) |
+| Marketing: tom de voz, pilares de conteúdo, o que funcionou, verba de anúncios | Tem (aba Perfil; 2026-10-23) |
+| Acessos às plataformas (sem senhas) | Tem (aba Acessos; 2026-10-23) |
 | Reuniões (pauta, decisões, pendências) | Tem (assunto, anotações, próximos passos) |
 | Campanhas e resultados mensais | Tem (com custo por lead, custo por venda e ROAS calculados) |
 | Financeiro do cliente | Tem |
-| Conteúdos, tarefas e projetos criativos do cliente dentro da ficha | Falta |
+| Conteúdos, tarefas e projetos criativos do cliente dentro da ficha | Tem (aba Entregas; 2026-10-23) |
 
 ### Financeiro
 
@@ -109,5 +109,5 @@ Autenticação com renovação de sessão e três papéis (Admin, Comercial, Mar
 ## Ordem sugerida
 
 1. **Rápido** (principalmente interface): ticket médio e leads "quentes" no painel; tarefas atrasadas e prioridades no painel; filtros que faltam (nicho dos scripts, cliente/formato/objetivo dos conteúdos, tipo/cliente das tarefas); índice da base; abrir Direct do Instagram; copiar e-mail; "valores por cliente" com total; categorias fixas de despesa; status extras de conteúdo.
-2. **Médio** (banco e interface): anotações no histórico do lead; ficha completa do cliente (negócio, marketing, contrato, redes, acessos sem senha); campos extras do lead (anuncia na Meta, gancho, envio planejado, grupo); detalhe de conteúdo; calendário mensal; lista da Prospecção; conteúdos, tarefas e projetos dentro da ficha do cliente; importação de CSV de leads.
+2. **Médio** (banco e interface): campos extras do lead (anuncia na Meta, gancho, envio planejado, grupo); detalhe de conteúdo; calendário mensal; lista da Prospecção; importação de CSV de leads.
 3. **Maior**: envio de arquivos (armazenamento de objetos), storyboard com imagens, formatos e guias do Estúdio.

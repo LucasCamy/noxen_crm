@@ -24,6 +24,12 @@ public record ClientInput
     public DateTimeOffset? NextMeeting { get; init; }
     public Guid? ResponsibleId { get; init; }
     [MaxLength(4000)] public string? Notes { get; init; }
+    [MaxLength(200)] public string? ContactEmail { get; init; }
+    [MaxLength(2000)] public string? ContractedServices { get; init; }
+    [MaxLength(100)] public string? PaymentMethod { get; init; }
+    public DateOnly? ContractStart { get; init; }
+    public DateOnly? ContractEnd { get; init; }
+    [MaxLength(300)] public string? Readjustment { get; init; }
 }
 
 public sealed record UpdateClientRequest : ClientInput
@@ -37,12 +43,14 @@ public sealed record ClientResponse(
     Guid Id, Guid? LeadId, string Name, string? LegalName, string? Cnpj, string? Segment, string? City, string? State,
     string? ContactName, string? ContactWhatsapp, ClientStatus Status, decimal ImplementationFee, decimal MonthlyFee,
     int DueDay, DateOnly ClientSince, DateTimeOffset? NextMeeting, Guid? ResponsibleId, string? Notes,
-    DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, uint Version)
+    DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, uint Version,
+    string? ContactEmail = null, string? ContractedServices = null, string? PaymentMethod = null,
+    DateOnly? ContractStart = null, DateOnly? ContractEnd = null, string? Readjustment = null)
 {
     public static ClientResponse From(Client c) => new(
         c.Id, c.LeadId, c.Name, c.LegalName, c.Cnpj, c.Segment, c.City, c.State, c.ContactName, c.ContactWhatsapp,
         c.Status, c.ImplementationFee, c.MonthlyFee, c.DueDay, c.ClientSince, c.NextMeeting, c.ResponsibleId, c.Notes,
-        c.CreatedAt, c.UpdatedAt, c.Version);
+        c.CreatedAt, c.UpdatedAt, c.Version, c.ContactEmail, c.ContractedServices, c.PaymentMethod, c.ContractStart, c.ContractEnd, c.Readjustment);
 }
 
 public static class ClientEndpoints
@@ -119,7 +127,10 @@ public static class ClientEndpoints
         return Results.Ok(ClientResponse.From(client));
     }
 
-    private static void Apply(Client client, ClientInput i, DateTimeOffset now) =>
+    private static void Apply(Client client, ClientInput i, DateTimeOffset now)
+    {
         client.UpdateDetails(i.Name, i.LegalName, i.Cnpj, i.Segment, i.City, i.State, i.ContactName, i.ContactWhatsapp,
             i.ImplementationFee, i.MonthlyFee, i.DueDay, i.NextMeeting, i.ResponsibleId, i.Notes, now);
+        client.UpdateContract(i.ContactEmail, i.ContractedServices, i.PaymentMethod, i.ContractStart, i.ContractEnd, i.Readjustment, now);
+    }
 }

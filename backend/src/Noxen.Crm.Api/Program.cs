@@ -81,6 +81,7 @@ app.MapClients();
 app.MapDashboard();
 app.MapFinance();
 app.MapClientActivities();
+app.MapClientProfiles();
 app.MapWorkspace();
 app.MapStudio();
 

@@ -974,3 +974,14 @@ td.row-actions {
 .updated-at {
   margin-top: var(--space-16);
 }
+
+/* título de bloco dentro de um formulário em duas colunas */
+.form-section {
+  grid-column: span 2;
+  margin-top: var(--space-4);
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--line);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-2);
+}

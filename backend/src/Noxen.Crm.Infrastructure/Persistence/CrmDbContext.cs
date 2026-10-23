@@ -17,6 +17,9 @@ public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
     public DbSet<Lead> Leads => Set<Lead>();
     public DbSet<LeadStageChange> LeadStageChanges => Set<LeadStageChange>();
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<ClientProfile> ClientProfiles => Set<ClientProfile>();
+    public DbSet<ClientAccess> ClientAccesses => Set<ClientAccess>();
+    public DbSet<LeadNote> LeadNotes => Set<LeadNote>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Payment> Payments => Set<Payment>();
@@ -87,6 +90,10 @@ public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
             e.Property(x => x.ContactName).HasMaxLength(150);
             e.Property(x => x.ContactWhatsapp).HasMaxLength(30);
             e.Property(x => x.Notes).HasMaxLength(4000);
+            e.Property(x => x.ContactEmail).HasMaxLength(200);
+            e.Property(x => x.ContractedServices).HasMaxLength(2000);
+            e.Property(x => x.PaymentMethod).HasMaxLength(100);
+            e.Property(x => x.Readjustment).HasMaxLength(300);
             e.Property(x => x.ImplementationFee).HasPrecision(14, 2);
             e.Property(x => x.MonthlyFee).HasPrecision(14, 2);
             e.Property(x => x.Status).HasConversion<string>().HasMaxLength(30);
@@ -97,6 +104,53 @@ public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
             e.HasIndex(x => x.Status);
             e.HasOne<Lead>().WithOne().HasForeignKey<Client>(x => x.LeadId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.ResponsibleId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<LeadNote>(e =>
+        {
+            e.ToTable("lead_notes");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Text).HasMaxLength(LeadNote.MaxLength).IsRequired();
+            e.HasIndex(x => new { x.LeadId, x.CreatedAt });
+            e.HasOne<Lead>().WithMany().HasForeignKey(x => x.LeadId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.CreatedById).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<ClientProfile>(e =>
+        {
+            e.ToTable("client_profiles");
+            e.HasKey(x => x.ClientId);
+            e.Property(x => x.Website).HasMaxLength(300);
+            e.Property(x => x.Instagram).HasMaxLength(30);
+            e.Property(x => x.Facebook).HasMaxLength(300);
+            e.Property(x => x.TikTok).HasMaxLength(300);
+            e.Property(x => x.WhatTheySell).HasMaxLength(2000);
+            e.Property(x => x.IdealCustomer).HasMaxLength(1000);
+            e.Property(x => x.Differentiators).HasMaxLength(2000);
+            e.Property(x => x.Competitors).HasMaxLength(2000);
+            e.Property(x => x.Seasonality).HasMaxLength(1000);
+            e.Property(x => x.MainGoal).HasMaxLength(500);
+            e.Property(x => x.Needs).HasMaxLength(2000);
+            e.Property(x => x.ToneOfVoice).HasMaxLength(1000);
+            e.Property(x => x.ContentPillars).HasMaxLength(1000);
+            e.Property(x => x.WhatWorked).HasMaxLength(2000);
+            e.Property(x => x.AdBudget).HasPrecision(14, 2);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasOne<Client>().WithOne().HasForeignKey<ClientProfile>(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<ClientAccess>(e =>
+        {
+            e.ToTable("client_accesses");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Platform).HasMaxLength(100).IsRequired();
+            e.Property(x => x.Account).HasMaxLength(200);
+            e.Property(x => x.AccessType).HasMaxLength(100);
+            e.Property(x => x.PasswordLocation).HasMaxLength(200);
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.Property(x => x.Version).IsRowVersion();
+            e.HasIndex(x => x.ClientId);
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<OutboxMessage>(e =>

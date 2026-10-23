@@ -33,6 +33,17 @@ public sealed class Client
     public DateTimeOffset? NextMeeting { get; private set; }
     public Guid? ResponsibleId { get; private set; }
     public string? Notes { get; private set; }
+    public string? ContactEmail { get; private set; }
+
+    // contrato
+    public string? ContractedServices { get; private set; }
+    /// <summary>Como o cliente paga (Pix, boleto, cartão...).</summary>
+    public string? PaymentMethod { get; private set; }
+    public DateOnly? ContractStart { get; private set; }
+    /// <summary>Fim da fidelidade / do contrato.</summary>
+    public DateOnly? ContractEnd { get; private set; }
+    public string? Readjustment { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
@@ -93,6 +104,32 @@ public sealed class Client
         ResponsibleId = responsibleId;
         Notes = Clean(notes);
         UpdatedAt = now;
+    }
+
+    /// <summary>Contato por e-mail e condições do contrato (a ficha comercial do cliente).</summary>
+    public void UpdateContract(
+        string? contactEmail, string? contractedServices, string? paymentMethod,
+        DateOnly? contractStart, DateOnly? contractEnd, string? readjustment, DateTimeOffset now)
+    {
+        var email = Clean(contactEmail);
+        if (email is not null && !IsPlausibleEmail(email)) throw new DomainException("E-mail inválido.");
+        if (contractStart is not null && contractEnd is not null && contractEnd < contractStart)
+            throw new DomainException("O fim do contrato não pode ser anterior ao início.");
+
+        ContactEmail = email?.ToLowerInvariant();
+        ContractedServices = Clean(contractedServices);
+        PaymentMethod = Clean(paymentMethod);
+        ContractStart = contractStart;
+        ContractEnd = contractEnd;
+        Readjustment = Clean(readjustment);
+        UpdatedAt = now;
+    }
+
+    private static bool IsPlausibleEmail(string value)
+    {
+        var at = value.IndexOf('@');
+        return at > 0 && at == value.LastIndexOf('@') && value.IndexOf('.', at) > at + 1
+            && !value.EndsWith('.') && !value.Any(char.IsWhiteSpace);
     }
 
     public ClientStatus ChangeStatus(ClientStatus target, DateTimeOffset now)

@@ -876,3 +876,39 @@
   padding: var(--space-16) 0 0;
   background: transparent;
 }
+
+/* anotações no histórico do lead */
+.note-composer {
+  display: grid;
+  gap: var(--space-8);
+  margin-bottom: var(--space-12);
+}
+
+.note-composer textarea {
+  width: 100%;
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--bg-surface);
+  resize: vertical;
+}
+
+.note-composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.history li.timeline-note {
+  display: grid;
+  gap: var(--space-4);
+  border-left: 2px solid var(--line-focus);
+}
+
+.timeline-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}

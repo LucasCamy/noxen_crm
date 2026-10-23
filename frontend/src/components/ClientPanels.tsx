@@ -5,32 +5,11 @@ import { useCrmMutation } from '../lib/mutations'
 import { useCampaigns, useMeetings, usePayments, useResults } from '../lib/queries'
 import type { Campaign, CampaignStatus, Meeting, MonthlyResult } from '../lib/types'
 import type { Tone } from '../lib/domain'
-import { Badge, Card, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, ListSkeleton, SectionTitle, SelectField, TextAreaField, TextField } from './ui'
-import { ConfirmDialog, FormFooter, RowActions, Tabs, blankToNull, useForm } from './common'
+import { Badge, CreateButton, DateValue, Dialog, EmptyState, ErrorNote, ListSkeleton, SectionTitle, SelectField, TextAreaField, TextField } from './ui'
+import { ConfirmDialog, FormFooter, RowActions, blankToNull, useForm } from './common'
 import { PaymentFormDialog, PaymentsTable } from './FinanceParts'
 
-type Tab = 'payments' | 'meetings' | 'campaigns' | 'results'
-
-export function ClientPanels({ clientId, canFinance }: { clientId: string; canFinance: boolean }) {
-  const [tab, setTab] = useState<Tab>(canFinance ? 'payments' : 'meetings')
-  const tabs: { key: Tab; label: string }[] = [
-    ...(canFinance ? [{ key: 'payments' as const, label: 'Pagamentos' }] : []),
-    { key: 'meetings', label: 'Reuniões' },
-    { key: 'campaigns', label: 'Campanhas' },
-    { key: 'results', label: 'Resultados' },
-  ]
-  return (
-    <Card className="detail-below" aria-label="Pagamentos, reuniões, campanhas e resultados do cliente">
-      <Tabs label="Seções do cliente" tabs={tabs} value={tab} onChange={setTab} />
-      {tab === 'payments' && canFinance && <PaymentsPanel clientId={clientId} />}
-      {tab === 'meetings' && <MeetingsPanel clientId={clientId} />}
-      {tab === 'campaigns' && <CampaignsPanel clientId={clientId} />}
-      {tab === 'results' && <ResultsPanel clientId={clientId} />}
-    </Card>
-  )
-}
-
-function PanelHead({ title, label, action }: { title: string; label: string; action: () => void }) {
+export function PanelHead({ title, label, action }: { title: string; label: string; action: () => void }) {
   return (
     <div className="card-head">
       <SectionTitle>{title}</SectionTitle>
@@ -41,7 +20,7 @@ function PanelHead({ title, label, action }: { title: string; label: string; act
 
 // ---------------------------------------------------------------- pagamentos
 
-function PaymentsPanel({ clientId }: { clientId: string }) {
+export function PaymentsPanel({ clientId }: { clientId: string }) {
   const { data, isPending, isError, refetch } = usePayments({ clientId })
   const [creating, setCreating] = useState(false)
   return (
@@ -63,7 +42,7 @@ function PaymentsPanel({ clientId }: { clientId: string }) {
 
 // ---------------------------------------------------------------- reuniões
 
-function MeetingsPanel({ clientId }: { clientId: string }) {
+export function MeetingsPanel({ clientId }: { clientId: string }) {
   const { data, isPending, isError, refetch } = useMeetings(clientId)
   const [editing, setEditing] = useState<{ meeting: Meeting | null } | null>(null)
   const [deleting, setDeleting] = useState<Meeting | null>(null)
@@ -146,7 +125,7 @@ function MeetingForm({ clientId, meeting, onClose }: { clientId: string; meeting
 
 const CAMPAIGN_TONE: Record<CampaignStatus, Tone> = { Planejada: 'info', Ativa: 'success', Pausada: 'warning', Encerrada: 'neutral' }
 
-function CampaignsPanel({ clientId }: { clientId: string }) {
+export function CampaignsPanel({ clientId }: { clientId: string }) {
   const { data, isPending, isError, refetch } = useCampaigns(clientId)
   const [editing, setEditing] = useState<{ campaign: Campaign | null } | null>(null)
   const [deleting, setDeleting] = useState<Campaign | null>(null)
@@ -273,7 +252,7 @@ function CampaignForm({ clientId, campaign, onClose }: { clientId: string; campa
 
 const num = (n: number | null, digits = 2) => (n === null ? EMPTY : n.toLocaleString('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits }))
 
-function ResultsPanel({ clientId }: { clientId: string }) {
+export function ResultsPanel({ clientId }: { clientId: string }) {
   const { data, isPending, isError, refetch } = useResults(clientId)
   const [editing, setEditing] = useState<{ result: MonthlyResult | null } | null>(null)
   const [deleting, setDeleting] = useState<MonthlyResult | null>(null)

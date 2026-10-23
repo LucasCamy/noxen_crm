@@ -23,7 +23,7 @@ Este projeto segue o [Agent Project Kit](reference/agent-project-kit/README.md),
 - `backend/src/Noxen.Crm.Infrastructure`: `CrmDbContext`, migrations, Redis, RabbitMQ, `OutboxDispatcher` e consumidores.
 - `backend/src/Noxen.Crm.Api`: endpoints por funcionalidade (`Auth`, `Leads`, `Clients`, `Dashboard`, `Finance`, `Workspace`, `Studio`), DTOs e tratamento de erros.
 - `backend/src/Noxen.Crm.Worker`: host que roda o dispatcher da outbox, os consumidores e o `MaintenanceService` (gera as mensalidades do mês e limpa a outbox antiga).
-- `backend/tests/Noxen.Crm.Tests`: testes de domínio, de API (PostgreSQL real) e do pipeline outbox → RabbitMQ → Redis (84 testes passando na última execução).
+- `backend/tests/Noxen.Crm.Tests`: testes de domínio, de API (PostgreSQL real) e do pipeline outbox → RabbitMQ → Redis (108 testes passando na última execução).
 - `frontend/src`: `lib` (cliente da API com refresh de token, tipos, regras de domínio, formatação), `auth`, `components` (`components/ui` = kit de UI; `Layout`, `CommandPalette`, `Toast`), `pages` (carregadas por rota com `React.lazy`) e `styles/` (`tokens.css` com tokens e temas, `base.css`, `components.css`, `layout.css`, `pages.css`). Telas novas montam componentes de `components/ui` e usam só tokens semânticos; sem cores ou durações soltas.
 - `docs/adr`: decisões de arquitetura. `reference/`: material de consulta somente leitura (CRM original e o kit).
 
@@ -58,6 +58,7 @@ npm run lint                         # oxlint (12 avisos conhecidos: fast refres
 - Arquitetura em camadas simples ([ADR-0003](docs/adr/0003-camadas-e-modulos.md)). Não introduza Repository, Unit of Work, CQRS ou mediator sem um problema concreto.
 - Toda mudança em lead/cliente grava um evento na outbox **na mesma transação** (`db.AddEvent(...)`). Nunca publique no RabbitMQ direto do handler.
 - Consumidores de mensagens precisam ser idempotentes (a entrega é pelo menos uma vez).
+- Ficha do cliente (ADR-0009): contrato e e-mail no `Client`; perfil (`ClientProfile`, 1:1, versão 0 = ainda não existe) e acessos (`ClientAccess`, só o lugar da senha, nunca a senha) em endpoints próprios; anotações do lead são imutáveis (`LeadNote`) e aparecem em `GET /api/leads/{id}/timeline`.
 - Escrita concorrente: entidades editáveis têm `Version` (`xmin`); o cliente envia a versão lida e divergência retorna 409. Unicidade é garantida por índice no banco, não por consulta prévia.
 - Enums trafegam e são gravados como texto. Datas com `DateTimeOffset`/`DateOnly`; valores em R$ com `decimal(14,2)`.
 - Erros de regra → 422 (`DomainException`); validação de entrada → 400; conflito → 409; sempre `ProblemDetails`.
